@@ -47,7 +47,7 @@ const LastFmWidget = () => {
             <div className="WidgetSubtitle">{track.artist['#text']}</div>
         </div>
         {track.image[2]['#text'] && (
-            <img src={track.image[2]['#text']} alt="Cover" className="MusicCover" />
+            <img src={track.image[3]['#text']} alt="Cover" className="MusicCover" />
         )}
     </div>
   );

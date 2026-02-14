@@ -309,12 +309,31 @@ body {
 
 /* Обложка альбома */
 .MusicCover {
-  width: 45px;
-  height: 45px;
-  border-radius: 6px;
+  width: 80px;          /* Было 45px */
+  height: 80px;         /* Было 45px */
+  min-width: 80px;      /* Важно: чтобы длинный текст не сплющивал картинку */
+  
+  border-radius: 8px;   /* Чуть больше скругление */
   margin-left: 15px;
   border: 1px solid var(--color-primary);
   object-fit: cover;
+  
+  /* Тень для объема */
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .WidgetContainer {
+    width: 90vw;
+    padding: 12px;
+  }
+  
+  .MusicCover {
+    width: 60px;       /* Было 35px, на телефоне будет крупнее */
+    height: 60px;
+    min-width: 60px;   /* Защита от сплющивания */
+  }
 }
 
 /* Анимации */
