@@ -193,3 +193,151 @@ body {
     font-size: 0.9rem; 
   }
 }
+/* ================================================= */
+/* 7. СТИЛИ TELEGRAM WIDGET (.TelegramContainer)     */
+/* ================================================= */
+
+.TelegramContainer {
+  /* Используем ту же ширину, что и у TypingTitle */
+  width: 600px;
+  max-width: 90vw;
+  
+  /* Те же цвета фона и рамок */
+  background-color: var(--color-surface);
+  border: 0.5px solid rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  border-radius: 12px;
+  
+  /* Отступы */
+  padding: 20px;
+  margin-top: 30px; /* Отступ сверху от контактов */
+  margin-bottom: 30px;
+
+  /* Чтобы содержимое не вылезало */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+/* Нужно добавить position: relative для контейнера самого виджета, 
+   чтобы "заплатка" позиционировалась относительно него */
+.telegram-widget-inner {
+  width: 100%;
+}
+
+/* Адаптив для виджета */
+@media (max-width: 768px) {
+  .TelegramContainer {
+    width: 90vw;
+    padding: 15px;
+  }
+}
+
+/* ================================================= */
+/* 8. WIDGETS (LastFM & Calendar)                    */
+/* ================================================= */
+
+.WidgetContainer {
+  width: 600px; /* Та же ширина, что у TypingTitle и Telegram */
+  max-width: 90vw;
+  
+  background-color: var(--color-surface);
+  border: 0.5px solid rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2); /* Чуть меньше свечения чем у главного блока */
+  border-radius: 12px;
+  
+  padding: 15px 20px;
+  margin-bottom: 20px; /* Отступ снизу */
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Иконки */
+.WidgetIcon {
+  font-size: 1.5rem;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+}
+
+.MusicIcon {
+  color: var(--color-primary);
+  animation: pulseMusic 2s infinite;
+}
+
+.CalendarIcon {
+  color: #ff3333; /* Красная точка записи */
+  font-size: 1.2rem;
+  animation: blinkRec 1.5s infinite;
+}
+
+/* Текстовый контент */
+.WidgetContent {
+  flex-grow: 1;
+  text-align: left;
+  overflow: hidden;
+}
+
+.WidgetTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.WidgetSubtitle {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Обложка альбома */
+.MusicCover {
+  width: 45px;
+  height: 45px;
+  border-radius: 6px;
+  margin-left: 15px;
+  border: 1px solid var(--color-primary);
+  object-fit: cover;
+}
+
+/* Анимации */
+@keyframes pulseMusic {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 5px var(--color-primary); }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes blinkRec {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .WidgetContainer {
+    width: 90vw;
+    padding: 12px;
+  }
+  .MusicCover {
+    width: 35px;
+    height: 35px;
+  }
+}
