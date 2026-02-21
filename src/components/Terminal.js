@@ -32,8 +32,8 @@ const Terminal = ({ onCommand }) => {
         if (parts.length === 3) {
           const w = parseInt(parts[1], 10);
           const h = parseInt(parts[2], 10);
-          if (isNaN(w) || isNaN(h) || w < 2 || w > 13 || h < 2 || h > 25) {
-            output = 'error: limits are width 2-13, height 2-25';
+          if (isNaN(w) || isNaN(h) || w < 2 || w > 14 || h < 2 || h > 25) {
+            output = 'error: limits are width 2-14, height 2-25';
           } else {
             output = `ascii grid resized to ${w}x${h}`;
             onCommand(cmd);
@@ -55,6 +55,7 @@ const Terminal = ({ onCommand }) => {
 
   return (
     <div 
+      className="hide-on-mobile"
       style={{ width: '800px', maxWidth: '90vw', marginTop: '30px', marginBottom: '30px', textAlign: 'left', fontFamily: 'Consolas, monospace', fontSize: '0.9rem' }} 
       onClick={() => inputRef.current && inputRef.current.focus()}
     >

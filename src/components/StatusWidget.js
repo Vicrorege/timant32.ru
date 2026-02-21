@@ -29,7 +29,7 @@ const StatusWidget = () => {
   };
 
   return (
-    <div className="WidgetContainer" style={{ marginBottom: '20px' }}>
+    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px' }}>
       <div className="WidgetIcon" style={{ color: 'var(--color-primary)' }}>🖥️</div>
       <div className="WidgetContent">
         <div className="WidgetTitle" style={{ color: 'var(--color-primary)' }}>{t('servers')}</div>

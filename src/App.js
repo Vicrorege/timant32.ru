@@ -117,7 +117,7 @@ function App() {
       if (parts.length === 3) {
         const w = parseInt(parts[1], 10);
         const h = parseInt(parts[2], 10);
-        if (w >= 2 && w <= 13 && h >= 2 && h <= 25) {
+        if (w >= 2 && w <= 14 && h >= 2 && h <= 25) {
           setAsciiSize({ w, h });
         }
       }
