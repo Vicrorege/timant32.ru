@@ -43,6 +43,21 @@ body {
   color: var(--color-surface);
 }
 
+/* Кастомный скроллбар */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dark-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-start);
+}
+
 /* ================================================= */
 /* 2. СТРУКТУРА КОМПОНЕНТОВ (CENTRAL LAYOUT) */
 /* ================================================= */
@@ -75,7 +90,7 @@ body {
   font-weight: 500;
   line-height: 1.3; 
   
-  width: 800px; /* Увеличено с 600px для ПК */
+  width: 800px; 
   height: 160px; 
   
   background-color: var(--color-surface); 
@@ -110,38 +125,7 @@ body {
 }
 
 /* ================================================= */
-/* 4. СТИЛИ КОНТАКТНОЙ ИНФОРМАЦИИ (.ContactInfo) */
-/* ================================================= */
-
-.ContactInfo {
-  font-size: 1.1rem; 
-  font-weight: bold; 
-  text-transform: uppercase; 
-  letter-spacing: 1px;
-  text-align: center;
-}
-
-.ContactInfo a {
-  text-decoration: none; 
-  cursor: pointer;
-  display: inline-block; 
-  
-  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
-  -webkit-background-clip: text; 
-  -webkit-text-fill-color: transparent; 
-  color: var(--gradient-start); 
-
-  text-shadow: 0 0 8px rgba(0, 255, 153, 0.4);
-  
-  transition: opacity 0.2s ease-in-out;
-}
-
-.ContactInfo a:hover {
-  opacity: 0.7;
-}
-
-/* ================================================= */
-/* 5. СТИЛИ ПЕРЕКЛЮЧАТЕЛЯ ЯЗЫКА (.language-switcher) */
+/* 4. СТИЛИ ПЕРЕКЛЮЧАТЕЛЯ ЯЗЫКА (.language-switcher) */
 /* ================================================= */
 
 .language-switcher {
@@ -181,22 +165,27 @@ body {
 }
 
 /* ================================================= */
-/* 6. СТИЛИ TELEGRAM WIDGET (.TelegramContainer)     */
+/* 5. СЕТКА (ДВЕ КОЛОНКИ ДЛЯ ПК) И ТЕЛЕГРАМ          */
 /* ================================================= */
 
-.TelegramContainer {
-  width: 800px; /* Увеличено с 600px для ПК */
+.TwoColumns {
+  display: flex;
+  width: 800px;
   max-width: 90vw;
-  
+  gap: 20px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+.TelegramContainer {
+  flex: 1;
+  width: 100%;
   background-color: var(--color-surface);
   border: 0.5px solid rgba(0, 255, 0, 0.4);
   box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
   border-radius: 12px;
-  
   padding: 20px;
-  margin-top: 30px; 
-  margin-bottom: 30px;
-
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -206,12 +195,19 @@ body {
   width: 100%;
 }
 
+.SideWidgets {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 /* ================================================= */
-/* 7. WIDGETS (LastFM, Calendar, Status)             */
+/* 6. WIDGETS (LastFM, Calendar, Status, Contact)    */
 /* ================================================= */
 
 .WidgetContainer {
-  width: 800px; /* Увеличено с 600px для ПК */
+  width: 800px; /* По умолчанию (для верхнего LastFM) */
   max-width: 90vw;
   
   background-color: var(--color-surface);
@@ -227,6 +223,18 @@ body {
   justify-content: space-between;
   
   animation: fadeIn 0.5s ease-in-out;
+  transition: all 0.2s ease-in-out;
+}
+
+.WidgetContainer:hover {
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Сбрасываем ширину для виджетов внутри боковой колонки */
+.SideWidgets .WidgetContainer {
+  width: 100%;
+  margin: 0 !important;
 }
 
 @keyframes fadeIn {
@@ -303,7 +311,7 @@ body {
 }
 
 /* ================================================= */
-/* 8. АДАПТИВНОСТЬ (MEDIA QUERIES) ОБЩАЯ             */
+/* 7. АДАПТИВНОСТЬ (MEDIA QUERIES)                   */
 /* ================================================= */
 
 @media (max-width: 768px) {
@@ -325,13 +333,19 @@ body {
     font-size: 0.8rem;
   }
 
-  .ContactInfo {
-    font-size: 0.9rem; 
+  .TwoColumns {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
   }
 
   .TelegramContainer {
-    width: 90vw;
+    width: 100%;
     padding: 15px;
+  }
+
+  .SideWidgets {
+    width: 100%;
   }
 
   .WidgetContainer {
@@ -345,44 +359,17 @@ body {
     min-width: 60px;   
   }
 }
-
-.TwoColumns {
-  display: flex;
-  width: 800px;
-  max-width: 90vw;
-  gap: 20px;
-  margin-top: 30px;
-  margin-bottom: 20px;
-  align-items: flex-start;
+.glitch-active {
+  animation: terminalGlitch 0.15s linear infinite;
+  filter: invert(1) hue-rotate(180deg);
+  pointer-events: none; /* чтобы нельзя было кликать во время глюка */
 }
 
-.TwoColumns .TelegramContainer {
-  flex: 1;
-  margin: 0;
-  width: auto;
-}
-
-.SideWidgets {
-  width: 280px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.SideWidgets .WidgetContainer {
-  width: 100%;
-  margin: 0 !important;
-}
-
-@media (max-width: 768px) {
-  .TwoColumns {
-    flex-direction: column;
-    align-items: center;
-  }
-  .TwoColumns .TelegramContainer {
-    width: 100%;
-  }
-  .SideWidgets {
-    width: 100%;
-  }
+@keyframes terminalGlitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-3px, 3px) }
+  40% { transform: translate(-3px, -3px) }
+  60% { transform: translate(3px, 3px) }
+  80% { transform: translate(3px, -3px) }
+  100% { transform: translate(0) }
 }
