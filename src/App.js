@@ -11,6 +11,8 @@ import BootScreen from './components/BootScreen';
 import Terminal from './components/Terminal';
 import CountdownWidget from './components/CountdownWidget';
 import AsciiVisualizerWidget from './components/AsciiVisualizerWidget';
+import CowsayWidget from './components/CowsayWidget';
+import GameOfLifeWidget from './components/GameOfLifeWidget';
 import './App.css';
 
 function App() {
@@ -154,20 +156,22 @@ function App() {
           <TypewriterEffect />
         </h1>
         {!hideWidgets && (
-          <div className="TwoColumns">
-            <div className="TelegramContainer">
+          <div className="TwoColumns" style={{ alignItems: 'stretch' }}>
+            <div className="TelegramContainer" style={{ height: '100%' }}>
               <TelegramWidget 
                 key={i18n.language}
                 channel={t('telegram_channel')} 
                 postId={t('telegram_post_id')} 
               />
             </div>
-            <div className="SideWidgets">
+            <div className="SideWidgets" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               <StatusWidget />
               <CountdownWidget />
               <AsciiVisualizerWidget width={asciiSize.w} height={asciiSize.h} />
               <CalendarWidget />
               <ContactWidget />
+              <CowsayWidget />
+              <GameOfLifeWidget />
             </div>
           </div>
         )}

@@ -29,16 +29,18 @@ const StatusWidget = () => {
   };
 
   return (
-    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px' }}>
-      <div className="WidgetIcon" style={{ color: 'var(--color-primary)' }}>🖥️</div>
-      <div className="WidgetContent">
-        <div className="WidgetTitle" style={{ color: 'var(--color-primary)' }}>{t('servers')}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', marginTop: '8px', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px', flexDirection: 'column', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0, 255, 0, 0.3)', paddingBottom: '8px', marginBottom: '12px' }}>
+        <span style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.9rem', textShadow: 'none' }}>🖥️</span>
+        <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>{t('servers')}</span>
+      </div>
+      <div className="WidgetContent" style={{ width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ color: getColor(siteStatus), marginRight: '8px', fontSize: '12px' }}>●</span>
             <span>timant32.ru</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ color: getColor(mailStatus), marginRight: '8px', fontSize: '12px' }}>●</span>
             <span>mail.timant32.su</span>
           </div>

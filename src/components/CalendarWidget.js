@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ICAL from 'ical.js';
+import { useTranslation } from 'react-i18next';
 
 const CalendarWidget = () => {
   const [events, setEvents] = useState([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -60,19 +62,24 @@ const CalendarWidget = () => {
   if (!events.length) return null;
 
   return (
-    <>
-      {events.map((evt, i) => (
-        <div key={i} className="WidgetContainer CalendarWidget" 
-             onClick={evt.url ? () => window.open(evt.url, '_blank') : undefined}
-             style={{ cursor: evt.url ? 'pointer' : 'default', marginBottom: '20px' }}>
-          <div className="WidgetIcon CalendarIcon" style={{ color: evt.color }}>●</div>
-          <div className="WidgetContent">
-             <div className="WidgetTitle" style={{ color: evt.color }}>{evt.header}</div>
-             <div className="WidgetSubtitle">{evt.title}</div>
+    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px', flexDirection: 'column', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0, 255, 0, 0.3)', paddingBottom: '8px', marginBottom: '12px' }}>
+        <span style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.9rem', textShadow: 'none' }}>📅</span>
+        <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>{t('calendar', 'Calendar')}</span>
+      </div>
+      <div className="WidgetContent" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {events.map((evt, i) => (
+          <div key={i} onClick={evt.url ? () => window.open(evt.url, '_blank') : undefined}
+               style={{ cursor: evt.url ? 'pointer' : 'default', display: 'flex', alignItems: 'flex-start' }}>
+            <div style={{ color: evt.color, marginRight: '8px', fontSize: '12px', marginTop: '2px' }}>●</div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+               <div style={{ color: evt.color, fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase' }}>{evt.header}</div>
+               <div style={{ color: 'var(--color-text)', fontSize: '0.85rem' }}>{evt.title}</div>
+            </div>
           </div>
-        </div>
-      ))}
-    </>
+        ))}
+      </div>
+    </div>
   );
 };
 

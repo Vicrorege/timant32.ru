@@ -154,10 +154,12 @@ const AsciiVisualizerWidget = ({ width = 10, height = 5 }) => {
   }, [width, height]);
 
   return (
-    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px', alignItems: 'flex-start' }}>
-      <div className="WidgetIcon" style={{ color: 'var(--color-primary)' }}>🤖</div>
-      <div className="WidgetContent">
-        <div className="WidgetTitle" style={{ color: 'var(--color-primary)' }}>BFS_Pathfinding</div>
+    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px', flexDirection: 'column', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0, 255, 0, 0.3)', paddingBottom: '8px', marginBottom: '12px' }}>
+        <span style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.9rem', textShadow: 'none' }}>🤖</span>
+        <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>BFS Pathfinding</span>
+      </div>
+      <div className="WidgetContent" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <div style={{ fontFamily: 'Consolas, monospace', fontSize: '0.85rem', marginTop: '8px', lineHeight: '1.2', whiteSpace: 'pre' }}>
           {gridData.map((row, y) => (
             <div key={y}>

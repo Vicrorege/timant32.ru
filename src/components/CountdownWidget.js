@@ -38,13 +38,13 @@ const CountdownWidget = () => {
   }, []);
 
   return (
-    <div className="WidgetContainer" style={{ marginBottom: '20px' }}>
-      <div className="WidgetIcon" style={{ color: 'var(--color-primary)' }}>⏳</div>
-      <div className="WidgetContent">
-         <div className="WidgetTitle" style={{ color: 'var(--color-primary)' }}>
-           {targetName}
-         </div>
-         <div className="WidgetSubtitle">
+    <div className="WidgetContainer" style={{ marginBottom: '20px', flexDirection: 'column', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0, 255, 0, 0.3)', paddingBottom: '8px', marginBottom: '12px' }}>
+        <span style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.9rem', textShadow: 'none' }}>⏳</span>
+        <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>{targetName}</span>
+      </div>
+      <div className="WidgetContent" style={{ width: '100%' }}>
+         <div style={{ fontFamily: 'Consolas, monospace', fontSize: '0.9rem', color: 'var(--color-text)' }}>
            T-Minus: {timeLeft.d}d {timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
          </div>
       </div>

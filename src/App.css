@@ -457,3 +457,13 @@ body {
     display: none !important;
   }
 }
+
+.TwoColumns {
+  align-items: stretch;
+}
+
+.SideWidgets {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
