@@ -25,7 +25,7 @@
 
 1. Клонируй репозиторий:
 ```bash
-git clone [https://github.com/Vicrorege/timant32.ru.git](https://github.com/Vicrorege/timant32.ru.git)
+git clone https://github.com/Vicrorege/timant32.ru.git
 cd timant32.ru
 ```
 
