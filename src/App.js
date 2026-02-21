@@ -8,13 +8,28 @@ import TelegramWidget from './components/TelegramWidget';
 import StatusWidget from './components/StatusWidget';
 import ContactWidget from './components/ContactWidget';
 import BootScreen from './components/BootScreen';
+import Terminal from './components/Terminal';
 import './App.css';
 
 function App() {
   const { t, i18n } = useTranslation(); 
   const [glitch, setGlitch] = useState(false);
   const [isBooting, setIsBooting] = useState(!sessionStorage.getItem('booted'));
+  const [hideWidgets, setHideWidgets] = useState(false);
   const currentPath = window.location.pathname;
+
+  useEffect(() => {
+    const originalTitle = document.title;
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        document.title = '[1]+  Stopped  ssh root@timant32';
+      } else {
+        document.title = originalTitle;
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     let buffer = '';
@@ -47,6 +62,14 @@ function App() {
     setIsBooting(false);
   };
 
+  const handleTerminalCommand = (cmd) => {
+    if (cmd === 'clear') {
+      setHideWidgets(true);
+    } else if (cmd === 'show') {
+      setHideWidgets(false);
+    }
+  };
+
   if (isBooting) {
     return <BootScreen onFinish={handleBootFinish} />;
   }
@@ -69,29 +92,35 @@ function App() {
     <div className={`App minimalist ${glitch ? 'glitch-active' : ''}`}>
       <main className="MainContent MinimalContent">
         
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
-            <LastFmWidget />
-        </div>
+        {!hideWidgets && (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
+              <LastFmWidget />
+          </div>
+        )}
 
         <h1 className="TypingTitle">
           <TypewriterEffect />
         </h1>
         
-        <div className="TwoColumns">
-          <div className="TelegramContainer">
-            <TelegramWidget 
-              key={i18n.language}
-              channel={t('telegram_channel')} 
-              postId={t('telegram_post_id')} 
-            />
+        {!hideWidgets && (
+          <div className="TwoColumns">
+            <div className="TelegramContainer">
+              <TelegramWidget 
+                key={i18n.language}
+                channel={t('telegram_channel')} 
+                postId={t('telegram_post_id')} 
+              />
+            </div>
+            
+            <div className="SideWidgets">
+              <StatusWidget />
+              <CalendarWidget />
+              <ContactWidget />
+            </div>
           </div>
-          
-          <div className="SideWidgets">
-            <StatusWidget />
-            <CalendarWidget />
-            <ContactWidget />
-          </div>
-        </div>
+        )}
+
+        <Terminal onCommand={handleTerminalCommand} />
 
         <LanguageSwitcher /> 
         
