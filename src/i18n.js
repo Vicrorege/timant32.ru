@@ -11,7 +11,9 @@ const resources = {
       phrase4: 'а ещё, криво верстаю сайты на React.',
       contact: 'обращаться в Telegram:',
       telegram_channel: 'timant32info',
-      telegram_post_id: '4' 
+      telegram_post_id: '4',
+      servers: "Серверы",
+      online: "В сети"
     }
   },
   en: {
@@ -22,7 +24,9 @@ const resources = {
       phrase4: 'I also do some wonky React site layouts.',
       contact: 'Contact via Telegram:',
       telegram_channel: 'timant32info', 
-      telegram_post_id: '7' 
+      telegram_post_id: '7',
+      servers: "Servers",
+      online: "Online"
     }
   }
 };

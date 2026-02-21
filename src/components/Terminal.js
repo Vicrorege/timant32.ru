@@ -11,7 +11,7 @@ const Terminal = ({ onCommand }) => {
       let output = '';
 
       if (cmd === 'help') {
-        output = 'commands: help, clear, show, ping, whoami';
+        output = 'commands: help, clear, show, ping, whoami, reboot, ascii <w> <h>';
       } else if (cmd === 'ping') {
         output = 'pong';
       } else if (cmd === 'whoami') {
@@ -24,6 +24,23 @@ const Terminal = ({ onCommand }) => {
       } else if (cmd === 'show') {
         output = 'widgets restored.';
         onCommand('show');
+      } else if (cmd === 'reboot') {
+        output = 'rebooting system...';
+        onCommand('reboot');
+      } else if (cmd.startsWith('ascii')) {
+        const parts = cmd.split(' ');
+        if (parts.length === 3) {
+          const w = parseInt(parts[1], 10);
+          const h = parseInt(parts[2], 10);
+          if (isNaN(w) || isNaN(h) || w < 2 || w > 13 || h < 2 || h > 25) {
+            output = 'error: limits are width 2-13, height 2-25';
+          } else {
+            output = `ascii grid resized to ${w}x${h}`;
+            onCommand(cmd);
+          }
+        } else {
+          output = 'usage: ascii <width> <height>';
+        }
       } else if (cmd !== '') {
         output = `bash: ${cmd}: command not found`;
       }

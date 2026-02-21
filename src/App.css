@@ -362,7 +362,8 @@ body {
 .glitch-active {
   animation: terminalGlitch 0.15s linear infinite;
   filter: invert(1) hue-rotate(180deg);
-  pointer-events: none; /* чтобы нельзя было кликать во время глюка */
+  pointer-events: none;
+  background-color: var(--color-dark-bg); 
 }
 
 @keyframes terminalGlitch {
@@ -372,4 +373,39 @@ body {
   60% { transform: translate(3px, 3px) }
   80% { transform: translate(3px, -3px) }
   100% { transform: translate(0) }
+}
+
+.App::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(rgba(0, 255, 0, 0) 50%, rgba(0, 255, 0, 0.05) 50%, rgba(0, 255, 0, 0) 51%);
+  background-size: 100% 10px;
+  z-index: 9000;
+  pointer-events: none;
+  box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.95);
+  animation: scanline 8s linear infinite, flicker 0.15s infinite;
+}
+
+@keyframes scanline {
+  0% { background-position: 0 -100vh; }
+  100% { background-position: 0 100vh; }
+}
+
+@keyframes flicker {
+  0% { opacity: 0.95; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
+}
+
+.barrel-roll-active {
+  animation: barrelRoll 2s ease-in-out;
+}
+
+@keyframes barrelRoll {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
