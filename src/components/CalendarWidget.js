@@ -1,106 +1,79 @@
 import React, { useState, useEffect } from 'react';
+import ICAL from 'ical.js';
 
 const CalendarWidget = () => {
-  const [currentEvent, setCurrentEvent] = useState(null);
-  
-  // 🔴 ССЫЛКА (Убедись, что путь public/me@... точный, как в SOGo)
-  const icalUrl = 'https://mail.timant32.su/SOGo/dav/public/me@timant32.ru/Calendar/personal.ics';
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const fetchEvent = async () => {
+    const fetchEvents = async () => {
       try {
-        // Добавляем timestamp, чтобы избежать кэширования браузером
-        const noCacheUrl = `${icalUrl}?t=${Date.now()}`;
+        const res = await fetch(`/api/calendar?t=${Date.now()}`);
+        if (!res.ok) return;
+        const data = await res.text();
         
-        const response = await fetch(noCacheUrl);
-        
-        if (!response.ok) {
-           // Если 404 или ошибка сети — скрываем виджет
-           throw new Error(`Error loading calendar: ${response.status}`);
-        }
-        
-        const data = await response.text();
-        const eventName = parseICS(data);
-        
-        setCurrentEvent(eventName);
+        const comp = new ICAL.Component(ICAL.parse(data));
+        const nowMsk = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
+        const active = [];
 
-      } catch (error) {
-        console.error("Calendar Widget:", error);
-        setCurrentEvent(null);
-      }
+        comp.getAllSubcomponents('vevent').forEach(vevent => {
+          const event = new ICAL.Event(vevent);
+          if (!event.startDate) return;
+
+          let isHappening = false;
+          const durationMs = event.duration ? event.duration.toSeconds() * 1000 : 3600000;
+
+          if (event.isRecurring()) {
+            const iter = event.iterator();
+            let nextStart;
+            let maxLoops = 50;
+            while ((nextStart = iter.next()) && maxLoops-- > 0) {
+              const start = nextStart.toJSDate();
+              const end = new Date(start.getTime() + durationMs);
+              if (nowMsk >= start && nowMsk <= end) isHappening = true;
+              if (start > nowMsk) break;
+            }
+          } else {
+            const start = event.startDate.toJSDate();
+            const end = new Date(start.getTime() + durationMs);
+            if (nowMsk >= start && nowMsk <= end) isHappening = true;
+          }
+
+          if (isHappening) {
+            const [title, tags = ''] = (event.summary || '').split('|');
+            active.push({
+              title: title.trim(),
+              header: tags.match(/\[header="([^"]+)"\]/)?.[1] || (tags.includes('[event]') ? 'EVENT' : 'BUSY'),
+              url: tags.match(/\[onclick="([^"]+)"\]/)?.[1] || null,
+              color: tags.match(/\[color(?:hex)?=([^\]]+)\]/)?.[1] || (tags.includes('[event]') ? '#00FF00' : '#ff3333')
+            });
+          }
+        });
+        setEvents(active);
+      } catch (e) {}
     };
 
-    fetchEvent();
-    // Проверка каждую минуту
-    const interval = setInterval(fetchEvent, 60000); 
-
+    fetchEvents();
+    const interval = setInterval(fetchEvents, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  if (!currentEvent) return null;
+  if (!events.length) return null;
 
   return (
-    <div className="WidgetContainer CalendarWidget">
-      <div className="WidgetIcon CalendarIcon">●</div>
-      <div className="WidgetContent">
-         <div className="WidgetTitle" style={{ color: '#ff3333' }}>BUSY</div>
-         <div className="WidgetSubtitle">{currentEvent}</div>
-      </div>
-    </div>
+    <>
+      {events.map((evt, i) => (
+        <div key={i} className="WidgetContainer CalendarWidget" 
+             onClick={evt.url ? () => window.open(evt.url, '_blank') : undefined}
+             style={{ cursor: evt.url ? 'pointer' : 'default', marginBottom: '20px' }}>
+          <div className="WidgetIcon CalendarIcon" style={{ color: evt.color }}>●</div>
+          <div className="WidgetContent">
+             <div className="WidgetTitle" style={{ color: evt.color }}>{evt.header}</div>
+             <div className="WidgetSubtitle">{evt.title}</div>
+          </div>
+        </div>
+      ))}
+    </>
   );
-};
-
-// === ПАРСЕР (Ищет событие, идущее прямо сейчас) ===
-const parseICS = (icsData) => {
-  const now = new Date();
-  const events = icsData.split('BEGIN:VEVENT');
-
-  for (let rawEvent of events) {
-    const dtStart = extractValue(rawEvent, 'DTSTART');
-    const dtEnd = extractValue(rawEvent, 'DTEND');
-    const summary = extractValue(rawEvent, 'SUMMARY');
-
-    if (dtStart && summary) {
-      const startDate = parseICSDate(dtStart);
-      
-      // Если у события нет конца (редко), считаем его часовым
-      const endDate = dtEnd ? parseICSDate(dtEnd) : new Date(startDate.getTime() + 60*60*1000);
-
-      // Проверка: СЕЙЧАС находится внутри интервала события
-      if (now >= startDate && now <= endDate) {
-        return summary;
-      }
-    }
-  }
-  return null;
-};
-
-// Вспомогательная функция для извлечения значений (SUMMARY:Meeting -> Meeting)
-const extractValue = (text, key) => {
-  const regex = new RegExp(`${key}(?:;.*)?:(.*)`);
-  const match = text.match(regex);
-  return match ? match[1].trim() : null;
-};
-
-// Парсинг даты ICS (20251025T143000Z -> Date Object)
-const parseICSDate = (icsDate) => {
-  if (!icsDate) return new Date(0);
-  
-  const cleanDate = icsDate.replace('Z', '');
-  const year = cleanDate.substring(0, 4);
-  const month = cleanDate.substring(4, 6) - 1; // Месяцы в JS с 0
-  const day = cleanDate.substring(6, 8);
-  const hour = cleanDate.substring(9, 11) || '00';
-  const minute = cleanDate.substring(11, 13) || '00';
-  const second = cleanDate.substring(13, 15) || '00';
-
-  if (icsDate.includes('Z')) {
-      // Если есть Z — это UTC время
-      return new Date(Date.UTC(year, month, day, hour, minute, second));
-  } else {
-      // Если нет Z — это локальное время (Floating time)
-      return new Date(year, month, day, hour, minute, second);
-  }
 };
 
 export default CalendarWidget;

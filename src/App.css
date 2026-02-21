@@ -22,6 +22,12 @@
 
 body {
   background-color: var(--color-dark-bg);
+  background-image: 
+    linear-gradient(rgba(0, 255, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 0, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(0, 255, 0, 0.1) 0%, transparent 75%);
+  background-size: 40px 40px, 40px 40px, 100% 100vh;
+  background-attachment: fixed;
   color: var(--color-text);
   min-height: 100vh;
 }
