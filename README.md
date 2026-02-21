@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+# https://timant32.ru | Terminal Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Личный дашборд и сайт-визитка, стилизованные под терминал Linux и тайловый оконный менеджер (в духе Hyprland). Написано на React.
 
-## Available Scripts
+## Особенности
 
-In the project directory, you can run:
+* **Интерактивный терминал**: поддержка команд (`help`, `whoami`, `ping`, `clear`, `show`, `reboot`, `ascii <w> <h>`).
+* **Динамические виджеты**:
+  * **Servers Status**: мониторинг личных узлов (timant32.ru, mail.timant32.su, mc.timant32.ru).
+  * **BFS Pathfinding**: генерация лабиринтов и пошаговая визуализация поиска в ширину.
+  * **Game of Life**: клеточный автомат Джона Конвея.
+  * **Cowsay**: консольный пингвин, выдающий цитаты и мемы.
+  * **Last.fm / Telegram / Calendar**: интеграция внешних API.
+* **Easter Eggs**: Konami code, глитч-эффекты на опасные команды (`rm -rf /`).
+* **Адаптивность**: второстепенные виджеты скрываются на узких экранах для сохранения чистоты интерфейса.
 
-### `npm start`
+## Стек технологий
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+* React.js
+* CSS3 (Custom properties, flexbox, CSS-анимации)
+* i18next (Локализация)
+* ical.js (Парсинг календаря)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Запуск локально
 
-### `npm test`
+1. Клонируй репозиторий:
+```bash
+git clone [https://github.com/Vicrorege/timant32.ru.git](https://github.com/Vicrorege/timant32.ru.git)
+cd timant32.ru
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Установи зависимости:
+```bash
+npm install
+```
 
-### `npm run build`
+3. Создай файл `.env` в корне проекта и пропиши ключи API:
+```env
+REACT_APP_LASTFM_KEY=твой_ключ
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+4. Запусти dev-сервер:
+```bash
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Сборка для продакшена
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm run build
+```
+Готовые статические файлы появятся в директории `build/`.
 
-### `npm run eject`
+## Лицензия
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+[MIT License](LICENSE)

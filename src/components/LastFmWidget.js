@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 const LastFmWidget = () => {
   const [track, setTrack] = useState(null);
   
-  const apiKey = 'e0c7141b21d00e44144ccc0f01318efd';
+  const apiKey = process.env.REACT_APP_LASTFM_KEY; //api key alredy revoked
   const user = 'tinant32';
 
   useEffect(() => {
