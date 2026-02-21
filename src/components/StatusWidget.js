@@ -40,7 +40,7 @@ const StatusWidget = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
             <span style={{ color: getColor(mailStatus), marginRight: '8px', fontSize: '12px' }}>●</span>
-            <span>mail.timant32.sus</span>
+            <span>mail.timant32.su</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ color: getColor(mcStatus), marginRight: '8px', fontSize: '12px' }}>●</span>
