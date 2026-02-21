@@ -5,6 +5,8 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import LastFmWidget from './components/LastFmWidget';
 import CalendarWidget from './components/CalendarWidget';
 import TelegramWidget from './components/TelegramWidget'; 
+import StatusWidget from './components/StatusWidget';
+import ContactWidget from './components/ContactWidget';
 import './App.css';
 
 function App() {
@@ -21,27 +23,22 @@ function App() {
         <h1 className="TypingTitle">
           <TypewriterEffect />
         </h1>
-
-        <div className="ContactInfo">
-          <a 
-            href="https://t.me/tim_ant32" 
-            target="_blank" 
-            rel="noopener noreferrer"
-          >
-            {t('contact')} <span className="ContactHandle">@tim_ant32</span>
-          </a>
-        </div>
-        <div className="TelegramContainer">
-          <TelegramWidget 
-            key={i18n.language}
-            channel={t('telegram_channel')} 
-            postId={t('telegram_post_id')} 
-          />
-        </div>
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
+        
+        <div className="TwoColumns">
+          <div className="TelegramContainer">
+            <TelegramWidget 
+              key={i18n.language}
+              channel={t('telegram_channel')} 
+              postId={t('telegram_post_id')} 
+            />
+          </div>
+          
+          <div className="SideWidgets">
+            <StatusWidget />
             <CalendarWidget />
+            <ContactWidget />
+          </div>
         </div>
-
 
         <LanguageSwitcher /> 
         

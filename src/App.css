@@ -32,6 +32,17 @@ body {
   min-height: 100vh;
 }
 
+/* Выделение текста в терминальном стиле */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+::-moz-selection {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
 /* ================================================= */
 /* 2. СТРУКТУРА КОМПОНЕНТОВ (CENTRAL LAYOUT) */
 /* ================================================= */
@@ -64,7 +75,7 @@ body {
   font-weight: 500;
   line-height: 1.3; 
   
-  width: 600px; 
+  width: 800px; /* Увеличено с 600px для ПК */
   height: 160px; 
   
   background-color: var(--color-surface); 
@@ -98,7 +109,6 @@ body {
     opacity: 1;
 }
 
-
 /* ================================================= */
 /* 4. СТИЛИ КОНТАКТНОЙ ИНФОРМАЦИИ (.ContactInfo) */
 /* ================================================= */
@@ -129,7 +139,6 @@ body {
 .ContactInfo a:hover {
   opacity: 0.7;
 }
-
 
 /* ================================================= */
 /* 5. СТИЛИ ПЕРЕКЛЮЧАТЕЛЯ ЯЗЫКА (.language-switcher) */
@@ -171,9 +180,130 @@ body {
   opacity: 0.8;
 }
 
+/* ================================================= */
+/* 6. СТИЛИ TELEGRAM WIDGET (.TelegramContainer)     */
+/* ================================================= */
+
+.TelegramContainer {
+  width: 800px; /* Увеличено с 600px для ПК */
+  max-width: 90vw;
+  
+  background-color: var(--color-surface);
+  border: 0.5px solid rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  border-radius: 12px;
+  
+  padding: 20px;
+  margin-top: 30px; 
+  margin-bottom: 30px;
+
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.telegram-widget-inner {
+  width: 100%;
+}
 
 /* ================================================= */
-/* 6. АДАПТИВНОСТЬ (MEDIA QUERIES) */
+/* 7. WIDGETS (LastFM, Calendar, Status)             */
+/* ================================================= */
+
+.WidgetContainer {
+  width: 800px; /* Увеличено с 600px для ПК */
+  max-width: 90vw;
+  
+  background-color: var(--color-surface);
+  border: 0.5px solid rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2); 
+  border-radius: 12px;
+  
+  padding: 15px 20px;
+  margin-bottom: 20px; 
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.WidgetIcon {
+  font-size: 1.5rem;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+}
+
+.MusicIcon {
+  color: var(--color-primary);
+  animation: pulseMusic 2s infinite;
+}
+
+.CalendarIcon {
+  font-size: 1.2rem;
+  animation: blinkRec 1.5s infinite;
+}
+
+.WidgetContent {
+  flex-grow: 1;
+  text-align: left;
+  overflow: hidden;
+}
+
+.WidgetTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.WidgetSubtitle {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.MusicCover {
+  width: 80px;          
+  height: 80px;         
+  min-width: 80px;      
+  
+  border-radius: 8px;   
+  margin-left: 15px;
+  border: 1px solid var(--color-primary);
+  object-fit: cover;
+  
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+/* Анимации */
+@keyframes pulseMusic {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 5px var(--color-primary); }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes blinkRec {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* ================================================= */
+/* 8. АДАПТИВНОСТЬ (MEDIA QUERIES) ОБЩАЯ             */
 /* ================================================= */
 
 @media (max-width: 768px) {
@@ -198,171 +328,61 @@ body {
   .ContactInfo {
     font-size: 0.9rem; 
   }
-}
-/* ================================================= */
-/* 7. СТИЛИ TELEGRAM WIDGET (.TelegramContainer)     */
-/* ================================================= */
 
-.TelegramContainer {
-  /* Используем ту же ширину, что и у TypingTitle */
-  width: 600px;
-  max-width: 90vw;
-  
-  /* Те же цвета фона и рамок */
-  background-color: var(--color-surface);
-  border: 0.5px solid rgba(0, 255, 0, 0.4);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
-  border-radius: 12px;
-  
-  /* Отступы */
-  padding: 20px;
-  margin-top: 30px; /* Отступ сверху от контактов */
-  margin-bottom: 30px;
-
-  /* Чтобы содержимое не вылезало */
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-}
-
-/* Нужно добавить position: relative для контейнера самого виджета, 
-   чтобы "заплатка" позиционировалась относительно него */
-.telegram-widget-inner {
-  width: 100%;
-}
-
-/* Адаптив для виджета */
-@media (max-width: 768px) {
   .TelegramContainer {
     width: 90vw;
     padding: 15px;
   }
-}
 
-/* ================================================= */
-/* 8. WIDGETS (LastFM & Calendar)                    */
-/* ================================================= */
-
-.WidgetContainer {
-  width: 600px; /* Та же ширина, что у TypingTitle и Telegram */
-  max-width: 90vw;
-  
-  background-color: var(--color-surface);
-  border: 0.5px solid rgba(0, 255, 0, 0.4);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2); /* Чуть меньше свечения чем у главного блока */
-  border-radius: 12px;
-  
-  padding: 15px 20px;
-  margin-bottom: 20px; /* Отступ снизу */
-  
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Иконки */
-.WidgetIcon {
-  font-size: 1.5rem;
-  margin-right: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-}
-
-.MusicIcon {
-  color: var(--color-primary);
-  animation: pulseMusic 2s infinite;
-}
-
-.CalendarIcon {
-  color: #ff3333; /* Красная точка записи */
-  font-size: 1.2rem;
-  animation: blinkRec 1.5s infinite;
-}
-
-/* Текстовый контент */
-.WidgetContent {
-  flex-grow: 1;
-  text-align: left;
-  overflow: hidden;
-}
-
-.WidgetTitle {
-  font-size: 1rem;
-  font-weight: bold;
-  color: var(--color-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.WidgetSubtitle {
-  font-size: 0.85rem;
-  color: var(--color-text);
-  opacity: 0.8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Обложка альбома */
-.MusicCover {
-  width: 80px;          /* Было 45px */
-  height: 80px;         /* Было 45px */
-  min-width: 80px;      /* Важно: чтобы длинный текст не сплющивал картинку */
-  
-  border-radius: 8px;   /* Чуть больше скругление */
-  margin-left: 15px;
-  border: 1px solid var(--color-primary);
-  object-fit: cover;
-  
-  /* Тень для объема */
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
-}
-
-/* Адаптив */
-@media (max-width: 768px) {
   .WidgetContainer {
     width: 90vw;
     padding: 12px;
   }
   
   .MusicCover {
-    width: 60px;       /* Было 35px, на телефоне будет крупнее */
+    width: 60px;       
     height: 60px;
-    min-width: 60px;   /* Защита от сплющивания */
+    min-width: 60px;   
   }
 }
 
-/* Анимации */
-@keyframes pulseMusic {
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 5px var(--color-primary); }
-  100% { transform: scale(1); opacity: 0.8; }
+.TwoColumns {
+  display: flex;
+  width: 800px;
+  max-width: 90vw;
+  gap: 20px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  align-items: flex-start;
 }
 
-@keyframes blinkRec {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
+.TwoColumns .TelegramContainer {
+  flex: 1;
+  margin: 0;
+  width: auto;
 }
 
-/* Адаптив */
+.SideWidgets {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.SideWidgets .WidgetContainer {
+  width: 100%;
+  margin: 0 !important;
+}
+
 @media (max-width: 768px) {
-  .WidgetContainer {
-    width: 90vw;
-    padding: 12px;
+  .TwoColumns {
+    flex-direction: column;
+    align-items: center;
   }
-  .MusicCover {
-    width: 35px;
-    height: 35px;
+  .TwoColumns .TelegramContainer {
+    width: 100%;
+  }
+  .SideWidgets {
+    width: 100%;
   }
 }
