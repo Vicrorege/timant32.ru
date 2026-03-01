@@ -1,7 +1,9 @@
 /* ================================================= */
 /* 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И СБРОС СТИЛЕЙ (RESET) */
 /* ================================================= */
-
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Rajdhani:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inconsolata:wght@400;500;600&family=Roboto+Mono:wght@400;500;600&family=Ubuntu+Mono:wght@400;700&display=swap');
 :root {
   --color-dark-bg: #030303; 
   --color-surface: #000000;
@@ -11,13 +13,28 @@
 
   --gradient-start: #00FF99;   
   --gradient-end: #00CC33;  
+
+  --font-jetbrains: 'JetBrains Mono', monospace;
+  --font-fira: 'Fira Code', monospace;
+  --font-source: 'Source Code Pro', monospace;
+  --font-space: 'Space Mono', monospace;
+  --font-inter: 'Inter', sans-serif;
+  --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-exo: 'Exo 2', sans-serif;
+  --font-rajdhani: 'Rajdhani', sans-serif;
+  --font-ibm: 'IBM Plex Mono', monospace;
+  --font-inconsolata: 'Inconsolata', monospace;
+  --font-roboto: 'Roboto Mono', monospace;
+  --font-ubuntu: 'Ubuntu Mono', monospace;
+
+  --font-main: var(--font-ibm);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Consolas', 'Courier New', monospace !important; 
+  font-family: var(--font-main) !important;
 }
 
 body {
