@@ -52,7 +52,7 @@ body {
   min-height: 100vh;
 }
 
-/* Quiet ingress watermark — hostname of the tab you opened */
+/* Quiet ingress watermark — hostname of the tab you opened (bottom-right) */
 html::after {
   content: attr(data-ingress);
   position: fixed;
@@ -64,7 +64,7 @@ html::after {
   letter-spacing: 0.18em;
   text-transform: lowercase;
   color: var(--color-primary);
-  opacity: 0.09;
+  opacity: 0.16;
   user-select: none;
 }
 
@@ -269,19 +269,36 @@ html::after {
   word-break: break-word;
 }
 
-.telegram-proxy-text a {
+.telegram-proxy-text a,
+.telegram-proxy-text a:visited,
+.telegram-proxy-text a b,
+.telegram-proxy-text a strong,
+.telegram-proxy-text a i,
+.telegram-proxy-text a em,
+.telegram-proxy-text a code {
   color: var(--color-primary);
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
-.telegram-proxy-text a:hover {
+.telegram-proxy-text a:hover,
+.telegram-proxy-text a:hover b,
+.telegram-proxy-text a:hover strong,
+.telegram-proxy-text a:hover i {
+  color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+  filter: brightness(1.15);
 }
 
 .telegram-proxy-text b,
 .telegram-proxy-text strong {
   color: var(--color-text);
+  font-weight: 700;
+}
+
+.telegram-proxy-text a b,
+.telegram-proxy-text a strong {
+  color: var(--color-primary);
   font-weight: 700;
 }
 

@@ -94,10 +94,12 @@ const TelegramWidget = ({ channel, postId }) => {
       })
     : null;
 
+  const author = String(post.author || channel).replace(/^@+/, '');
+
   return (
     <div className="telegram-widget-inner telegram-proxy-card">
       <div className="telegram-proxy-head">
-        <span className="telegram-proxy-author">@{post.author || channel}</span>
+        <span className="telegram-proxy-author">@{author}</span>
         {when ? <span className="telegram-proxy-date">{when}</span> : null}
       </div>
 
