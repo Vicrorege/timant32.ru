@@ -43,7 +43,9 @@ ENV TELEGRAM_PROXY_PORT="3099"
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -fsS http://127.0.0.1/healthz >/dev/null || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD curl -fsS http://127.0.0.1/healthz >/dev/null \
+   && curl -fsS http://127.0.0.1:3099/healthz >/dev/null \
+   || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

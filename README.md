@@ -46,10 +46,10 @@ Dev-сервер (порт 3000) сам проксирует `/api/*` по зн�
 ```bash
 cp .env.example .env
 docker compose up -d --build
-curl -fsS http://localhost:8080/healthz
+curl -fsS http://localhost:8067/healthz
 ```
 
-Порт: `HOST_PORT` (по умолчанию 8080). TLS — на глобальном nginx/прокси перед контейнером.
+Порт: `HOST_PORT` (по умолчанию 8067). TLS — на глобальном nginx/прокси перед контейнером.
 
 Смена `LASTFM_API_KEY` / `CALENDAR_ICS_URL` — **runtime** (правь `.env` на сервере и `docker compose up -d`), без пересборки образа.
 
@@ -82,8 +82,19 @@ nano /opt/timant32/.env   # LASTFM_API_KEY=... ; CALENDAR_ICS_URL=  (пусто 
 
 Пользователь должен быть в группе `docker` (или root).
 
-Глобальный nginx: TLS + **только** `/api/calendar` (SOGo ICS), остальное — на контейнер `127.0.0.1:8080`.  
-Готовый скелет: [`docker/host-nginx-timant32.ru.example.conf`](docker/host-nginx-timant32.ru.example.conf).
+Глобальный nginx: TLS + **только** `/api/calendar` (SOGo ICS), **всё остальное** (включая Telegram-пост) — на контейнер `127.0.0.1:8067`.  
+Схема: браузер → `https://timant32.ru/api/telegram/post` → docker nginx → node scrape `t.me` (на VPS TG открывается) → JSON обратно.  
+Готовый conf: [`docker/host-nginx-timant32.ru.example.conf`](docker/host-nginx-timant32.ru.example.conf).
+
+Проверка на сервере после деплоя:
+
+```bash
+curl -fsS 'http://127.0.0.1:8067/api/telegram/post?channel=timant32info&id=4' | head
+curl -fsS 'https://timant32.ru/api/telegram/post?channel=timant32info&id=4' | head
+docker exec timant32 curl -fsS http://127.0.0.1:3099/healthz
+```
+
+Если первый curl ок, а https — нет: хостовый nginx ещё отдаёт старый `root /opt/timant32/build` вместо `proxy_pass` на `:8067`.
 
 В серверном `.env` для Docker **`CALENDAR_ICS_URL` оставляй пустым** — календарь уже закрыт хостовым nginx. Нужны `LASTFM_API_KEY` (и при желании остальное).
 

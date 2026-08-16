@@ -1,37 +1,61 @@
 import React, { useEffect, useState } from 'react';
 
-const mediaUrl = (src) => `/api/telegram/media?u=${encodeURIComponent(src)}`;
+const mediaUrl = (src) => {
+  if (!src) return '';
+  if (src.startsWith('/')) return src;
+  return `/api/telegram/media?u=${encodeURIComponent(src)}`;
+};
+
+async function loadPost(channel, postId) {
+  const res = await fetch(
+    `/api/telegram/post?channel=${encodeURIComponent(channel)}&id=${encodeURIComponent(postId)}`,
+    { cache: 'no-store' }
+  );
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} ${body.slice(0, 120)}`);
+  }
+  return res.json();
+}
 
 const TelegramWidget = ({ channel, postId }) => {
   const [post, setPost] = useState(null);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
+    (async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `/api/telegram/post?channel=${encodeURIComponent(channel)}&id=${encodeURIComponent(postId)}`
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const data = await loadPost(channel, postId);
         if (!cancelled) setPost(data);
       } catch (err) {
-        console.warn('[telegram] proxy fetch failed', err);
+        console.warn('[telegram]', err);
+        // static cache only as soft fallback (e.g. local RU without VPN)
+        try {
+          const cached = await fetch(`/telegram-cache/${channel}-${postId}.json`, { cache: 'no-store' });
+          if (cached.ok) {
+            const data = await cached.json();
+            if (data?.source !== 'placeholder' && !cancelled) {
+              setPost(data);
+              return;
+            }
+          }
+        } catch {
+          // ignore
+        }
         if (!cancelled) {
           setPost(null);
-          setError('link down');
+          setError(err.message || 'proxy failed');
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
-    };
+    })();
 
-    load();
     return () => {
       cancelled = true;
     };
@@ -40,27 +64,26 @@ const TelegramWidget = ({ channel, postId }) => {
   if (loading) {
     return (
       <div className="telegram-widget-inner telegram-proxy-card">
-        <div className="telegram-proxy-meta">t.me/{channel}/{postId}</div>
-        <div className="telegram-proxy-text" style={{ opacity: 0.6 }}>fetching via local relay...</div>
+        <div className="telegram-proxy-text" style={{ opacity: 0.45 }}>
+          loading…
+        </div>
       </div>
     );
   }
 
-  if (error || !post) {
-    return (
-      <div className="telegram-widget-inner telegram-proxy-card">
-        <div className="telegram-proxy-meta">t.me/{channel}/{postId}</div>
-        <div className="telegram-proxy-text">{error || 'empty'}</div>
-        <a
-          className="telegram-proxy-link"
-          href={`https://t.me/${channel}/${postId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          open in telegram →
-        </a>
-      </div>
-    );
+  if (!post || (!post.text && !(post.photos && post.photos.length))) {
+    // On prod this should not happen if host nginx → docker and VPS can reach t.me
+    if (error) {
+      return (
+        <div className="telegram-widget-inner telegram-proxy-card">
+          <div className="telegram-proxy-meta">t.me/{channel}/{postId}</div>
+          <div className="telegram-proxy-text" style={{ opacity: 0.7 }}>
+            relay offline — check host nginx proxies to :8067 and container health
+          </div>
+        </div>
+      );
+    }
+    return null;
   }
 
   const when = post.date
@@ -80,12 +103,7 @@ const TelegramWidget = ({ channel, postId }) => {
       </div>
 
       {post.photos?.[0] ? (
-        <img
-          className="telegram-proxy-photo"
-          src={mediaUrl(post.photos[0])}
-          alt=""
-          loading="lazy"
-        />
+        <img className="telegram-proxy-photo" src={mediaUrl(post.photos[0])} alt="" loading="lazy" />
       ) : null}
 
       {post.text ? <div className="telegram-proxy-text">{post.text}</div> : null}
@@ -94,7 +112,7 @@ const TelegramWidget = ({ channel, postId }) => {
         {post.views ? <span className="telegram-proxy-views">{post.views} views</span> : <span />}
         <a
           className="telegram-proxy-link"
-          href={post.link}
+          href={post.link || `https://t.me/${channel}/${postId}`}
           target="_blank"
           rel="noopener noreferrer"
         >

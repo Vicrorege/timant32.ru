@@ -8,6 +8,7 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "telegram:cache": "node server/refresh-telegram-cache.mjs",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down"

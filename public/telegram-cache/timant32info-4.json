@@ -1,0 +1,11 @@
+{
+  "channel": "timant32info",
+  "id": "4",
+  "text": "кэш поста ещё не прогрет.\nна машине с доступом к t.me:\n  npm run telegram:cache\nпотом закоммить public/telegram-cache/",
+  "date": null,
+  "views": null,
+  "author": "timant32info",
+  "photos": [],
+  "link": "https://t.me/timant32info/4",
+  "source": "placeholder"
+}

@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: timant32
     ports:
-      - "${HOST_PORT:-8080}:80"
+      - "${HOST_PORT:-8067}:80"
     environment:
       # Runtime secrets/config — never baked into the JS bundle
       CALENDAR_ICS_URL: ${CALENDAR_ICS_URL:-}

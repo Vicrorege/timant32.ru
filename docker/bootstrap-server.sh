@@ -19,7 +19,7 @@ services:
     image: ${IMAGE:-ghcr.io/vicrorege/timant32.ru:latest}
     container_name: timant32
     ports:
-      - "${HOST_PORT:-8080}:80"
+      - "${HOST_PORT:-8067}:80"
     environment:
       CALENDAR_ICS_URL: ${CALENDAR_ICS_URL:-}
       LASTFM_API_KEY: ${LASTFM_API_KEY:-}
@@ -48,7 +48,7 @@ fi
 
 if [ ! -f .env ]; then
   cat > .env <<'EOF'
-HOST_PORT=8080
+HOST_PORT=8067
 LASTFM_API_KEY=
 LASTFM_USER=tinant32
 CALENDAR_ICS_URL=

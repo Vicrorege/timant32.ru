@@ -1,0 +1,11 @@
+{
+  "channel": "timant32info",
+  "id": "7",
+  "text": "post cache not warmed yet.\non a host that can reach t.me:\n  npm run telegram:cache\nthen commit public/telegram-cache/",
+  "date": null,
+  "views": null,
+  "author": "timant32info",
+  "photos": [],
+  "link": "https://t.me/timant32info/7",
+  "source": "placeholder"
+}
