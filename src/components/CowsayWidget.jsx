@@ -79,14 +79,14 @@ const CowsayWidget = () => {
   }, []);
 
   return (
-    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '20px', flexDirection: 'column', alignItems: 'stretch' }}>
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0, 255, 0, 0.3)', paddingBottom: '8px', marginBottom: '12px' }}>
+    <div className="WidgetContainer hide-on-mobile" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
         <span style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.9rem', textShadow: 'none' }}>🐧</span>
         <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>cowsay -f tux</span>
       </div>
       <div className="WidgetContent" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-        <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', padding: '15px', borderRadius: '8px', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <pre style={{ color: 'var(--color-text)', fontSize: '0.8rem', lineHeight: '1.2', margin: 0 }}>
+        <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', padding: '10px', borderRadius: '8px', width: '100%', overflowX: 'auto' }}>
+          <pre style={{ color: 'var(--color-text)', fontSize: '0.72rem', lineHeight: '1.15', margin: 0, whiteSpace: 'pre' }}>
             {output}
           </pre>
         </div>

@@ -67,12 +67,12 @@ const GameOfLifeWidget = () => {
   }, []);
 
   return (
-    <div className="WidgetContainer hide-on-mobile" style={{ marginBottom: '0', flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0, 255, 0, 0.3)', paddingBottom: '8px', marginBottom: '12px' }}>
+    <div className="WidgetContainer WidgetGrow hide-on-mobile" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
         <span style={{ backgroundColor: 'var(--color-primary)', color: '#000', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.9rem', textShadow: 'none' }}>🧬</span>
         <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>Game of Life</span>
       </div>
-      <div className="WidgetContent" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <div className="WidgetContent" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%', minHeight: 0 }}>
         <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.3)', borderRadius: '8px', padding: '15px' }}>
           <pre style={{ color: 'var(--color-primary)', fontSize: '8px', lineHeight: '8px', letterSpacing: '2px', margin: 0 }}>
             {gridData}
