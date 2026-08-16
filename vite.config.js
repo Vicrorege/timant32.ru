@@ -87,6 +87,7 @@ function localApiStubs(env) {
             }
             const upstream = await fetch(raw, {
               headers: { 'User-Agent': 'Mozilla/5.0 (compatible; timant32-tg-proxy/1.0)' },
+              redirect: 'follow',
             });
             if (!upstream.ok) {
               res.statusCode = upstream.status;
@@ -101,6 +102,35 @@ function localApiStubs(env) {
           } catch (error) {
             res.statusCode = 502;
             res.end(error.message || 'media failed');
+          }
+          return;
+        }
+
+        const emojiMatch = path?.match(/^\/api\/telegram\/emoji\/(\d+)$/);
+        if (emojiMatch) {
+          try {
+            const upstream = await fetch(`https://t.me/i/emoji/${emojiMatch[1]}.webp`, {
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                Accept: 'image/webp,image/apng,image/*,*/*;q=0.8',
+                Referer: 'https://t.me/',
+              },
+              redirect: 'follow',
+            });
+            if (!upstream.ok) {
+              res.statusCode = upstream.status;
+              res.end('emoji fetch failed');
+              return;
+            }
+            const buf = Buffer.from(await upstream.arrayBuffer());
+            res.statusCode = 200;
+            res.setHeader('Content-Type', upstream.headers.get('content-type') || 'image/webp');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            res.end(buf);
+          } catch (error) {
+            res.statusCode = 502;
+            res.end(error.message || 'emoji failed');
           }
           return;
         }

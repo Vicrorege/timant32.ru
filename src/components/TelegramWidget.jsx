@@ -34,7 +34,6 @@ const TelegramWidget = ({ channel, postId }) => {
         if (!cancelled) setPost(data);
       } catch (err) {
         console.warn('[telegram]', err);
-        // static cache only as soft fallback (e.g. local RU without VPN)
         try {
           const cached = await fetch(`/telegram-cache/${channel}-${postId}.json`, { cache: 'no-store' });
           if (cached.ok) {
@@ -71,8 +70,8 @@ const TelegramWidget = ({ channel, postId }) => {
     );
   }
 
-  if (!post || (!post.text && !(post.photos && post.photos.length))) {
-    // On prod this should not happen if host nginx → docker and VPS can reach t.me
+  const hasBody = Boolean(post?.html || post?.text || post?.photos?.length);
+  if (!post || !hasBody) {
     if (error) {
       return (
         <div className="telegram-widget-inner telegram-proxy-card">
@@ -106,7 +105,11 @@ const TelegramWidget = ({ channel, postId }) => {
         <img className="telegram-proxy-photo" src={mediaUrl(post.photos[0])} alt="" loading="lazy" />
       ) : null}
 
-      {post.text ? <div className="telegram-proxy-text">{post.text}</div> : null}
+      {post.html ? (
+        <div className="telegram-proxy-text" dangerouslySetInnerHTML={{ __html: post.html }} />
+      ) : post.text ? (
+        <div className="telegram-proxy-text">{post.text}</div>
+      ) : null}
 
       <div className="telegram-proxy-foot">
         {post.views ? <span className="telegram-proxy-views">{post.views} views</span> : <span />}

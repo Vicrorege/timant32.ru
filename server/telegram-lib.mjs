@@ -47,6 +47,50 @@ export function decodeEntities(str = '') {
     .trim();
 }
 
+/**
+ * Keep formatting + custom TG emoji (proxied via /api/telegram/emoji/:id).
+ * Public t.me pages expose <tg-emoji emoji-id="...">; art is at t.me/i/emoji/{id}.webp
+ */
+export function formatMessageHtml(innerHtml = '') {
+  let html = String(innerHtml);
+
+  html = html.replace(/<tg-emoji\s+emoji-id="(\d+)">([\s\S]*?)<\/tg-emoji>/gi, (_, id, inner) => {
+    const alt = decodeEntities(inner).slice(0, 16) || 'emoji';
+    return `<img class="tg-custom-emoji" src="/api/telegram/emoji/${id}" alt="${alt.replace(/"/g, '')}" loading="lazy" draggable="false" />`;
+  });
+
+  // Drop leftover unicode-emoji <i class="emoji"> wrappers if any remain
+  html = html.replace(/<i class="emoji"[^>]*>[\s\S]*?<\/i>/gi, (block) => decodeEntities(block));
+
+  html = html.replace(/\s+onclick="[^"]*"/gi, '');
+  html = html.replace(/\s+on\w+="[^"]*"/gi, '');
+  html = html.replace(/target="_blank"/gi, 'target="_blank" rel="noopener noreferrer"');
+
+  // Protocol-relative → https
+  html = html.replace(/url\('\/\//g, "url('https://");
+  html = html.replace(/src="\/\//g, 'src="https://');
+
+  // Whitelist tags; strip the rest but keep text
+  html = html.replace(/<\/?(?!\/?(?:br|b|strong|i|em|a|code|img)\b)([a-z0-9-]+)(?:\s[^>]*)?>/gi, '');
+
+  // Sanitize <a href>
+  html = html.replace(/<a\s+([^>]*?)>/gi, (full, attrs) => {
+    const href = (attrs.match(/href="([^"]*)"/i) || [])[1] || '';
+    if (!/^(https?:|tg:|mailto:)/i.test(href)) return '<a>';
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">`;
+  });
+
+  // Sanitize <img> — only our emoji proxy or already-relative api paths
+  html = html.replace(/<img\s+([^>]*?)\/?>/gi, (full, attrs) => {
+    const src = (attrs.match(/src="([^"]*)"/i) || [])[1] || '';
+    const alt = (attrs.match(/alt="([^"]*)"/i) || [])[1] || '';
+    if (!/^\/api\/telegram\/emoji\/\d+$/.test(src)) return alt;
+    return `<img class="tg-custom-emoji" src="${src}" alt="${alt}" loading="lazy" draggable="false" />`;
+  });
+
+  return html.trim();
+}
+
 /** t.me/s pages include a feed; isolate the exact data-post="channel/id" block. */
 export function sliceMessageHtml(html, channel, id) {
   const needle = `data-post="${channel}/${id}"`;
@@ -63,7 +107,9 @@ export function extractPost(html, channel, id) {
   const textMatch = chunk.match(
     /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i
   );
-  const text = textMatch ? decodeEntities(textMatch[1]) : '';
+  const rawInner = textMatch?.[1] || '';
+  const text = rawInner ? decodeEntities(rawInner) : '';
+  const formattedHtml = rawInner ? formatMessageHtml(rawInner) : '';
 
   const dateMatch = chunk.match(/<time[^>]*datetime="([^"]+)"/i);
   const viewsMatch = chunk.match(/class="tgme_widget_message_views"[^>]*>([^<]+)</i);
@@ -91,6 +137,7 @@ export function extractPost(html, channel, id) {
     channel,
     id: String(id),
     text: text || '',
+    html: formattedHtml || '',
     date: dateMatch?.[1] || null,
     views: viewsMatch?.[1]?.trim() || null,
     author: authorMatch ? decodeEntities(authorMatch[1]) : `@${channel}`,
@@ -157,10 +204,10 @@ export async function fetchTelegramPostLive(channel, id) {
       const html = await fetchHtml(url);
       const post = extractPost(html, channel, id);
       // Require the exact data-post slice when parsing /s/ feed pages
-      if (sliceMessageHtml(html, channel, id) && (post.text || post.photos.length)) {
+      if (sliceMessageHtml(html, channel, id) && (post.text || post.html || post.photos.length)) {
         return post;
       }
-      if (post.text || post.photos.length) return post;
+      if (post.text || post.html || post.photos.length) return post;
       lastError = new Error('empty parse');
     } catch (error) {
       lastError = error;

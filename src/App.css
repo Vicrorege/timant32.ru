@@ -265,8 +265,33 @@ html::after {
   color: var(--color-text);
   font-size: 0.9rem;
   line-height: 1.45;
-  white-space: pre-wrap;
+  white-space: normal;
   word-break: break-word;
+}
+
+.telegram-proxy-text a {
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.telegram-proxy-text a:hover {
+  border-bottom-color: var(--color-primary);
+}
+
+.telegram-proxy-text b,
+.telegram-proxy-text strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.tg-custom-emoji {
+  display: inline-block;
+  width: 1.35em;
+  height: 1.35em;
+  object-fit: contain;
+  vertical-align: -0.25em;
+  margin: 0 0.05em;
 }
 
 .telegram-proxy-photo {
