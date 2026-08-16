@@ -30,7 +30,7 @@
   --font-roboto: 'Roboto Mono', monospace;
   --font-ubuntu: 'Ubuntu Mono', monospace;
 
-  --font-main: var(--font-ibm);
+  --font-main: var(--font-jetbrains);
 }
 
 * {

@@ -141,7 +141,7 @@ function App() {
   if (currentPath !== '/') {
     return (
       <div className="App minimalist" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'var(--color-text)', fontSize: '1.2rem', textAlign: 'left', padding: '20px', fontFamily: 'Consolas, monospace' }}>
+        <div style={{ color: 'var(--color-text)', fontSize: '1.2rem', textAlign: 'left', padding: '20px', fontFamily: 'var(--font-main)' }}>
           <span style={{ color: '#ff3333' }}>root@{ingress.short}</span>:<span style={{ color: '#5555ff' }}>~{currentPath}</span>$ cat index.html<br/>
           bash: {currentPath}: No such file or directory<br/><br/>
           <span style={{ opacity: 0.35, fontSize: '0.85rem' }}>;; connected via {ingress.host}</span><br/><br/>

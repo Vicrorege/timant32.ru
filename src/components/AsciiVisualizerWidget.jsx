@@ -301,7 +301,7 @@ const AsciiVisualizerWidget = ({ width: widthProp, height: heightProp } = {}) =>
       >
         <div
           style={{
-            fontFamily: 'Consolas, monospace',
+            fontFamily: 'var(--font-main)',
             fontSize: '0.85rem',
             lineHeight: '1.25',
             whiteSpace: 'pre',

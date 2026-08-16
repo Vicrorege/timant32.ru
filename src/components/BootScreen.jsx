@@ -52,7 +52,7 @@ const BootScreen = ({ onFinish }) => {
         height: '100vh',
         backgroundColor: '#030303',
         color: '#E0E0E0',
-        fontFamily: 'Consolas, monospace',
+        fontFamily: 'var(--font-main)',
         padding: '20px',
         zIndex: 9999,
         display: 'flex',

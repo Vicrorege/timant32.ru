@@ -45,7 +45,7 @@ const CountdownWidget = () => {
         <span style={{ color: 'var(--color-primary)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', fontSize: '0.85rem' }}>{targetName}</span>
       </div>
       <div className="WidgetContent" style={{ width: '100%' }}>
-         <div style={{ fontFamily: 'Consolas, monospace', fontSize: '0.9rem', color: 'var(--color-text)' }}>
+         <div style={{ fontFamily: 'var(--font-main)', fontSize: '0.9rem', color: 'var(--color-text)' }}>
            T-Minus: {timeLeft.d}d {timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
          </div>
       </div>

@@ -84,7 +84,7 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
         marginTop: '30px',
         marginBottom: '30px',
         textAlign: 'left',
-        fontFamily: 'Consolas, monospace',
+        fontFamily: 'var(--font-main)',
         fontSize: '0.9rem',
       }}
       onClick={() => inputRef.current && inputRef.current.focus()}
@@ -114,7 +114,7 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
             border: 'none',
             outline: 'none',
             color: 'var(--color-primary)',
-            fontFamily: 'Consolas, monospace',
+            fontFamily: 'var(--font-main)',
             fontSize: '0.9rem',
             flexGrow: 1,
           }}
