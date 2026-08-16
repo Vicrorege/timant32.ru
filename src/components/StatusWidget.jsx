@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+const checkReachable = async (url) => {
+  const res = await fetch(url, { method: 'GET', cache: 'no-store' });
+  // 2xx/3xx (and some 401/403 login walls) mean the host answered
+  if (res.status > 0 && res.status < 500) return 'online';
+  return 'offline';
+};
+
 const StatusWidget = () => {
   const { t } = useTranslation();
   const [siteStatus, setSiteStatus] = useState('checking');
@@ -8,18 +15,42 @@ const StatusWidget = () => {
   const [mcStatus, setMcStatus] = useState('checking');
 
   useEffect(() => {
-    fetch('/')
-      .then(res => setSiteStatus(res.ok ? 'online' : 'offline'))
-      .catch(() => setSiteStatus('offline'));
+    let cancelled = false;
 
-    fetch('https://mail.timant32.su', { mode: 'no-cors' })
-      .then(() => setMailStatus('online'))
-      .catch(() => setMailStatus('offline'));
+    const probe = async () => {
+      try {
+        const res = await fetch('/api/status/site', { cache: 'no-store' });
+        if (!cancelled) setSiteStatus(res.ok ? 'online' : 'offline');
+      } catch (error) {
+        console.warn('[status] site probe failed', error);
+        if (!cancelled) setSiteStatus('offline');
+      }
 
-    fetch('https://api.mcsrvstat.us/2/mc.timant32.ru')
-      .then(res => res.json())
-      .then(data => setMcStatus(data.online ? 'online' : 'offline'))
-      .catch(() => setMcStatus('offline'));
+      try {
+        const status = await checkReachable('/api/status/mail');
+        if (!cancelled) setMailStatus(status);
+      } catch (error) {
+        console.warn('[status] mail probe failed', error);
+        if (!cancelled) setMailStatus('offline');
+      }
+
+      try {
+        const res = await fetch('/api/status/mc', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setMcStatus(data.online ? 'online' : 'offline');
+      } catch (error) {
+        console.warn('[status] mc probe failed', error);
+        if (!cancelled) setMcStatus('offline');
+      }
+    };
+
+    probe();
+    const interval = setInterval(probe, 60000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const getColor = (status) => {

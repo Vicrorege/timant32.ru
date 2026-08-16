@@ -13,7 +13,8 @@ const CountdownWidget = () => {
         setTargetName(data.target);
         targetDate = new Date(data.date).getTime();
       })
-      .catch(() => {
+      .catch((error) => {
+        console.warn('[countdown] failed to load countdown.json', error);
         setTargetName('UNKNOWN_TARGET');
       });
 

@@ -1,33 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
+const BOOT_SEQUENCE = [
+  "[  OK  ] Mounted Root Filesystem.",
+  "[  OK  ] Reached target Local File Systems.",
+  "[  OK  ] Started React Framework.",
+  "[  OK  ] Started Nginx Web Server.",
+  "[  OK  ] Started Mailcow Server.",
+  "[  OK  ] Reached target Graphical Interface.",
+  "Starting timant32.ru..."
+];
 
 const BootScreen = ({ onFinish }) => {
   const [lines, setLines] = useState([]);
-  const bootSequence = [
-    "[  OK  ] Mounted Root Filesystem.",
-    "[  OK  ] Reached target Local File Systems.",
-    "[  OK  ] Started React Framework.",
-    "[  OK  ] Started Nginx Web Server.",
-    "[  OK  ] Started Mailcow Server.",
-    "[  OK  ] Reached target Graphical Interface.",
-    "Starting timant32.ru..."
-  ];
+  const onFinishRef = useRef(onFinish);
+  onFinishRef.current = onFinish;
 
   useEffect(() => {
     let currentIndex = 0;
+    let finishTimer;
+
     const interval = setInterval(() => {
-      if (currentIndex < bootSequence.length) {
-        const nextLine = bootSequence[currentIndex];
+      if (currentIndex < BOOT_SEQUENCE.length) {
+        const nextLine = BOOT_SEQUENCE[currentIndex];
         if (nextLine) {
           setLines(prev => [...prev, nextLine]);
         }
         currentIndex++;
       } else {
         clearInterval(interval);
-        setTimeout(onFinish, 600);
+        finishTimer = setTimeout(() => onFinishRef.current?.(), 600);
       }
     }, 150);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(finishTimer);
+    };
   }, []);
 
   return (
