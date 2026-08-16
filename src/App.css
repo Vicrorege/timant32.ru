@@ -12,7 +12,10 @@
   --color-secondary-text: #666666;
 
   --gradient-start: #00FF99;   
-  --gradient-end: #00CC33;  
+  --gradient-end: #00CC33;
+  --border-color: rgba(0, 255, 0, 0.4);
+  --glow-color: rgba(0, 255, 0, 0.5);
+  --grid-color: rgba(0, 255, 0, 0.04);
 
   --font-jetbrains: 'JetBrains Mono', monospace;
   --font-fira: 'Fira Code', monospace;
@@ -40,13 +43,29 @@
 body {
   background-color: var(--color-dark-bg);
   background-image: 
-    linear-gradient(rgba(0, 255, 0, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 0, 0.04) 1px, transparent 1px),
-    radial-gradient(circle at center, rgba(0, 255, 0, 0.1) 0%, transparent 75%);
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+    radial-gradient(circle at center, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 75%);
   background-size: 40px 40px, 40px 40px, 100% 100vh;
   background-attachment: fixed;
   color: var(--color-text);
   min-height: 100vh;
+}
+
+/* Quiet ingress watermark — hostname of the tab you opened */
+html::after {
+  content: attr(data-ingress);
+  position: fixed;
+  right: 14px;
+  bottom: 10px;
+  z-index: 3;
+  pointer-events: none;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: lowercase;
+  color: var(--color-primary);
+  opacity: 0.09;
+  user-select: none;
 }
 
 /* Выделение текста в терминальном стиле */
@@ -115,8 +134,8 @@ body {
   
   padding: 30px 40px; 
   
-  border: 0.5px solid rgba(0, 255, 0, 0.4); 
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5); 
+  border: 0.5px solid var(--border-color); 
+  box-shadow: 0 0 8px var(--glow-color); 
   
   border-radius: 12px; 
   
@@ -199,8 +218,8 @@ body {
   flex: 1;
   width: 100%;
   background-color: var(--color-surface);
-  border: 0.5px solid rgba(0, 255, 0, 0.4);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  border: 0.5px solid var(--border-color);
+  box-shadow: 0 0 8px var(--glow-color);
   border-radius: 12px;
   padding: 20px;
   overflow: hidden;
@@ -210,6 +229,64 @@ body {
 
 .telegram-widget-inner {
   width: 100%;
+}
+
+.telegram-proxy-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.telegram-proxy-head,
+.telegram-proxy-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--color-secondary-text);
+}
+
+.telegram-proxy-author {
+  color: var(--color-primary);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.telegram-proxy-meta {
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.telegram-proxy-text {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.telegram-proxy-photo {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color) 40%, transparent);
+}
+
+.telegram-proxy-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  font-size: 0.75rem;
+}
+
+.telegram-proxy-link:hover {
+  border-bottom-color: var(--color-primary);
 }
 
 .SideWidgets {
@@ -228,8 +305,8 @@ body {
   max-width: 90vw;
   
   background-color: var(--color-surface);
-  border: 0.5px solid rgba(0, 255, 0, 0.4);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2); 
+  border: 0.5px solid var(--border-color);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--glow-color) 45%, transparent); 
   border-radius: 12px;
   
   padding: 15px 20px;
@@ -244,7 +321,7 @@ body {
 }
 
 .WidgetContainer:hover {
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 12px var(--glow-color);
   transform: translateY(-2px);
 }
 
@@ -311,7 +388,7 @@ body {
   border: 1px solid var(--color-primary);
   object-fit: cover;
   
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color) 50%, transparent);
 }
 
 /* Анимации */

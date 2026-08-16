@@ -95,4 +95,13 @@ cat >> "$TARGET" <<EOF
     add_header Cache-Control "no-store" always;
     proxy_pass ${STATUS_MC_URL_VALUE};
   }
+
+  location /api/telegram/ {
+    proxy_pass http://127.0.0.1:3099/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 20s;
+    add_header Cache-Control "no-store" always;
+  }
 EOF

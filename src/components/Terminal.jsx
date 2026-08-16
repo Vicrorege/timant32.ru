@@ -1,9 +1,18 @@
 import React, { useState, useRef } from 'react';
+import { resolveIngress } from '../tldTheme';
 
-const Terminal = ({ onCommand }) => {
+const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState([]);
   const inputRef = useRef(null);
+  const ingress = resolveIngress();
+
+  const prompt = (
+    <>
+      <span style={{ color: '#ff3333' }}>root@{hostLabel}</span>
+      <span style={{ color: '#5555ff' }}>~</span>$
+    </>
+  );
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -11,11 +20,24 @@ const Terminal = ({ onCommand }) => {
       let output = '';
 
       if (cmd === 'help') {
-        output = 'commands: help, clear, show, ping, whoami, reboot, ascii <w> <h>';
+        output = 'commands: help, clear, show, ping, whoami, hostname, dig, reboot, ascii <w> <h>';
       } else if (cmd === 'ping') {
         output = 'pong';
       } else if (cmd === 'whoami') {
-        output = 'tim\nskills: Python, C++, React, Arch Linux, DevOps';
+        output = `tim\nskills: Python, C++, React, Arch Linux, DevOps\nsession: ${ingress.host}`;
+      } else if (cmd === 'hostname' || cmd === 'host') {
+        output = ingress.host;
+      } else if (cmd === 'dig' || cmd === 'nslookup') {
+        output = [
+          `; <<>> Dig simulated <<>> ${ingress.host}`,
+          `;; QUESTION SECTION:`,
+          `;${ingress.host}.\t\tIN\tA`,
+          `;; ANSWER SECTION:`,
+          `${ingress.host}.\t60\tIN\tTXT\t"tier=${ingress.tierLabel}; tld=.${ingress.tld}"`,
+          `;; Query time: 1 msec`,
+          `;; SERVER: 127.0.0.1#53`,
+          `;; MSG SIZE  rcvd: 64`,
+        ].join('\n');
       } else if (cmd === 'clear') {
         setHistory([]);
         setInput('');
@@ -46,7 +68,7 @@ const Terminal = ({ onCommand }) => {
       }
 
       if (cmd !== '') {
-        setHistory(prev => [...prev, { cmd, output }]);
+        setHistory((prev) => [...prev, { cmd, output }]);
         onCommand(cmd);
       }
       setInput('');
@@ -54,19 +76,33 @@ const Terminal = ({ onCommand }) => {
   };
 
   return (
-    <div 
+    <div
       className="hide-on-mobile"
-      style={{ width: '800px', maxWidth: '90vw', marginTop: '30px', marginBottom: '30px', textAlign: 'left', fontFamily: 'Consolas, monospace', fontSize: '0.9rem' }} 
+      style={{
+        width: '800px',
+        maxWidth: '90vw',
+        marginTop: '30px',
+        marginBottom: '30px',
+        textAlign: 'left',
+        fontFamily: 'Consolas, monospace',
+        fontSize: '0.9rem',
+      }}
       onClick={() => inputRef.current && inputRef.current.focus()}
     >
       {history.map((item, i) => (
         <div key={i}>
-          <div><span style={{color: '#ff3333'}}>root@timant32</span>:<span style={{color: '#5555ff'}}>~</span>$ {item.cmd}</div>
-          {item.output && <div style={{color: 'var(--color-text)', whiteSpace: 'pre-wrap', marginBottom: '10px'}}>{item.output}</div>}
+          <div>
+            {prompt} {item.cmd}
+          </div>
+          {item.output && (
+            <div style={{ color: 'var(--color-text)', whiteSpace: 'pre-wrap', marginBottom: '10px' }}>
+              {item.output}
+            </div>
+          )}
         </div>
       ))}
       <div style={{ display: 'flex' }}>
-        <span style={{color: '#ff3333'}}>root@timant32</span>:<span style={{color: '#5555ff'}}>~</span>$&nbsp;
+        {prompt}&nbsp;
         <input
           ref={inputRef}
           type="text"
@@ -74,8 +110,13 @@ const Terminal = ({ onCommand }) => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           style={{
-            background: 'transparent', border: 'none', outline: 'none', color: 'var(--color-primary)',
-            fontFamily: 'Consolas, monospace', fontSize: '0.9rem', flexGrow: 1
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            color: 'var(--color-primary)',
+            fontFamily: 'Consolas, monospace',
+            fontSize: '0.9rem',
+            flexGrow: 1,
           }}
           spellCheck="false"
           autoComplete="off"

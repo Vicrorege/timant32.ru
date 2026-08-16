@@ -13,6 +13,7 @@ import CountdownWidget from './components/CountdownWidget';
 import AsciiVisualizerWidget from './components/AsciiVisualizerWidget';
 import CowsayWidget from './components/CowsayWidget';
 import GameOfLifeWidget from './components/GameOfLifeWidget';
+import { applyIngressTheme, resolveIngress } from './tldTheme';
 import './App.css';
 
 function App() {
@@ -22,20 +23,25 @@ function App() {
   const [isBooting, setIsBooting] = useState(!sessionStorage.getItem('booted'));
   const [hideWidgets, setHideWidgets] = useState(false);
   const [asciiSize, setAsciiSize] = useState({ w: 10, h: 5 });
+  const [ingress, setIngress] = useState(() => resolveIngress());
   const currentPath = window.location.pathname;
+
+  useEffect(() => {
+    setIngress(applyIngressTheme());
+  }, []);
 
   useEffect(() => {
     const originalTitle = document.title;
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        document.title = '[1]+  Stopped  ssh root@timant32';
+        document.title = `[1]+  Stopped  ssh root@${ingress.short}`;
       } else {
         document.title = originalTitle;
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [ingress.short]);
 
   useEffect(() => {
     let buffer = '';
@@ -77,11 +83,11 @@ function App() {
 
   useEffect(() => {
     console.log(
-      "%croot@timant32%c: You found the secret console.\nArch Linux + React = ♥",
-      "color: #00FF00; font-weight: bold; font-size: 14px;",
+      `%croot@${ingress.short}%c: You found the secret console.\nArch Linux + React = ♥\ningress=${ingress.host} tier=${ingress.tierLabel}`,
+      `color: ${ingress.theme.primary}; font-weight: bold; font-size: 14px;`,
       "color: inherit; font-size: 12px;"
     );
-  }, []);
+  }, [ingress]);
 
   useEffect(() => {
     let isVisible = true;
@@ -92,14 +98,14 @@ function App() {
       document.head.appendChild(link);
     }
     link.type = 'image/svg+xml';
-    const cursorOn = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect y="12" width="16" height="4" fill="%2300FF00"/></svg>';
+    const cursorOn = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect y="12" width="16" height="4" fill="${encodeURIComponent(ingress.theme.primary)}"/></svg>`;
     const cursorOff = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"></svg>';
     const interval = setInterval(() => {
       link.href = isVisible ? cursorOn : cursorOff;
       isVisible = !isVisible;
     }, 600);
     return () => clearInterval(interval);
-  }, []);
+  }, [ingress.theme.primary]);
 
   const handleBootFinish = () => {
     sessionStorage.setItem('booted', 'true');
@@ -134,8 +140,9 @@ function App() {
     return (
       <div className="App minimalist" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: 'var(--color-text)', fontSize: '1.2rem', textAlign: 'left', padding: '20px', fontFamily: 'Consolas, monospace' }}>
-          <span style={{ color: '#ff3333' }}>root@timant32</span>:<span style={{ color: '#5555ff' }}>~{currentPath}</span>$ cat index.html<br/>
+          <span style={{ color: '#ff3333' }}>root@{ingress.short}</span>:<span style={{ color: '#5555ff' }}>~{currentPath}</span>$ cat index.html<br/>
           bash: {currentPath}: No such file or directory<br/><br/>
+          <span style={{ opacity: 0.35, fontSize: '0.85rem' }}>;; connected via {ingress.host}</span><br/><br/>
           <a href="/" style={{ color: 'var(--color-primary)', textDecoration: 'none', borderBottom: '1px solid var(--color-primary)', cursor: 'pointer' }}>
             cd /
           </a>
@@ -175,7 +182,7 @@ function App() {
             </div>
           </div>
         )}
-        <Terminal onCommand={handleTerminalCommand} />
+        <Terminal onCommand={handleTerminalCommand} hostLabel={ingress.short} />
         <LanguageSwitcher /> 
       </main>
     </div>
