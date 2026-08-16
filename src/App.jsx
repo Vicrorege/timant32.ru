@@ -22,7 +22,7 @@ function App() {
   const [barrelRoll, setBarrelRoll] = useState(false);
   const [isBooting, setIsBooting] = useState(!sessionStorage.getItem('booted'));
   const [hideWidgets, setHideWidgets] = useState(false);
-  const [asciiSize, setAsciiSize] = useState({ w: 10, h: 5 });
+  const [asciiSize, setAsciiSize] = useState(null);
   const [ingress, setIngress] = useState(() => resolveIngress());
   const currentPath = window.location.pathname;
 
@@ -122,10 +122,12 @@ function App() {
       setIsBooting(true);
     } else if (cmd.startsWith('ascii ')) {
       const parts = cmd.split(' ');
-      if (parts.length === 3) {
+      if (parts[1] === 'auto') {
+        setAsciiSize(null);
+      } else if (parts.length === 3) {
         const w = parseInt(parts[1], 10);
         const h = parseInt(parts[2], 10);
-        if (w >= 2 && w <= 14 && h >= 2 && h <= 25) {
+        if (w >= 2 && w <= 24 && h >= 2 && h <= 20) {
           setAsciiSize({ w, h });
         }
       }
@@ -174,7 +176,10 @@ function App() {
             <div className="SideWidgets">
               <StatusWidget />
               <CountdownWidget />
-              <AsciiVisualizerWidget width={asciiSize.w} height={asciiSize.h} />
+              <AsciiVisualizerWidget
+                width={asciiSize?.w}
+                height={asciiSize?.h}
+              />
               <CalendarWidget />
               <ContactWidget />
               <CowsayWidget />
