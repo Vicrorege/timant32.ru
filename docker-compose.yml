@@ -6,6 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: timant32
+    # Default docker0 bridge — user-defined compose networks on this host
+    # currently cannot egress ("Host is unreachable"), so TG proxy would fail.
+    network_mode: bridge
     ports:
       - "${HOST_PORT:-8067}:80"
     environment:
@@ -17,6 +20,10 @@ services:
       STATUS_MC_URL: ${STATUS_MC_URL:-https://api.mcsrvstat.us/2/mc.timant32.ru}
     restart: unless-stopped
     read_only: true
+    volumes:
+      # Allows hotfixing the TG scraper without rebuilding the image
+      - ./server/telegram-lib.mjs:/opt/telegram-lib.mjs:ro
+      - ./server/telegram-proxy.mjs:/opt/telegram-proxy.mjs:ro
     tmpfs:
       - /etc/nginx/conf.d:mode=1777
       - /etc/nginx/snippets:mode=1777
@@ -30,4 +37,4 @@ services:
       interval: 30s
       timeout: 3s
       retries: 3
-      start_period: 10s
+      start_period: 15s

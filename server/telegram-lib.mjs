@@ -37,35 +37,55 @@ export function decodeEntities(str = '') {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
     .replace(/<[^>]+>/g, '')
+    .replace(/\u200b|\u200c|\u200d|\ufeff/g, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
-export function extractPost(html, channel, id) {
-  const textMatch =
-    html.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i) ||
-    html.match(/<meta property="og:description" content="([^"]*)"/i);
+/** t.me/s pages include a feed; isolate the exact data-post="channel/id" block. */
+export function sliceMessageHtml(html, channel, id) {
+  const needle = `data-post="${channel}/${id}"`;
+  const start = html.indexOf(needle);
+  if (start === -1) return null;
 
+  const next = html.indexOf('data-post="', start + needle.length);
+  return html.slice(start, next === -1 ? html.length : next);
+}
+
+export function extractPost(html, channel, id) {
+  const chunk = sliceMessageHtml(html, channel, id) || html;
+
+  const textMatch = chunk.match(
+    /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/i
+  );
   const text = textMatch ? decodeEntities(textMatch[1]) : '';
 
-  const dateMatch = html.match(/<time[^>]*datetime="([^"]+)"/i);
-  const viewsMatch = html.match(/class="tgme_widget_message_views"[^>]*>([^<]+)</i);
+  const dateMatch = chunk.match(/<time[^>]*datetime="([^"]+)"/i);
+  const viewsMatch = chunk.match(/class="tgme_widget_message_views"[^>]*>([^<]+)</i);
+
+  // Prefer author inside the message bubble, not the page/channel chrome
   const authorMatch =
-    html.match(/class="tgme_widget_message_owner_name"[^>]*>\s*<span[^>]*>([^<]+)</i) ||
-    html.match(/property="og:title" content="([^"]+)"/i);
+    chunk.match(/class="tgme_widget_message_owner_name"[^>]*>\s*<span[^>]*>([^<]+)</i) ||
+    chunk.match(/class="tgme_widget_message_from_author"[^>]*>([^<]+)</i);
 
+  // Only real message media — never og:image / user avatars
   const photos = [];
-  const photoRe = /background-image:\s*url\('?(https:\/\/[^'")\s]+)'?\)/gi;
+  const photoTagRe =
+    /class="([^"]*)"[^>]*style="([^"]*background-image[^"]*)"/gi;
   let m;
-  while ((m = photoRe.exec(html)) && photos.length < 4) {
-    if (!photos.includes(m[1])) photos.push(m[1]);
+  while ((m = photoTagRe.exec(chunk)) && photos.length < 4) {
+    const cls = m[1];
+    const style = m[2];
+    if (/user_photo|owner|author|avatar/i.test(cls)) continue;
+    if (!/photo|thumb|video/i.test(cls)) continue;
+    const urlMatch = style.match(/url\('?(https:\/\/[^')]+)'?\)/i);
+    if (urlMatch && !photos.includes(urlMatch[1])) photos.push(urlMatch[1]);
   }
-
-  const ogImage = html.match(/property="og:image" content="(https:\/\/[^"]+)"/i);
-  if (ogImage && !photos.includes(ogImage[1])) photos.unshift(ogImage[1]);
 
   return {
     channel,
@@ -73,7 +93,7 @@ export function extractPost(html, channel, id) {
     text: text || '',
     date: dateMatch?.[1] || null,
     views: viewsMatch?.[1]?.trim() || null,
-    author: authorMatch ? decodeEntities(authorMatch[1]) : channel,
+    author: authorMatch ? decodeEntities(authorMatch[1]) : `@${channel}`,
     photos,
     link: `https://t.me/${channel}/${id}`,
     source: 'live',
@@ -107,7 +127,11 @@ export function cacheKey(channel, id) {
 }
 
 export async function readTelegramCache(channel, id, extraDirs = []) {
-  const dirs = [...extraDirs, ...(process.env.TELEGRAM_CACHE_DIR ? [process.env.TELEGRAM_CACHE_DIR] : []), ...DEFAULT_CACHE_DIRS];
+  const dirs = [
+    ...extraDirs,
+    ...(process.env.TELEGRAM_CACHE_DIR ? [process.env.TELEGRAM_CACHE_DIR] : []),
+    ...DEFAULT_CACHE_DIRS,
+  ];
   const file = cacheKey(channel, id);
   for (const dir of dirs) {
     try {
@@ -132,6 +156,10 @@ export async function fetchTelegramPostLive(channel, id) {
     try {
       const html = await fetchHtml(url);
       const post = extractPost(html, channel, id);
+      // Require the exact data-post slice when parsing /s/ feed pages
+      if (sliceMessageHtml(html, channel, id) && (post.text || post.photos.length)) {
+        return post;
+      }
       if (post.text || post.photos.length) return post;
       lastError = new Error('empty parse');
     } catch (error) {
