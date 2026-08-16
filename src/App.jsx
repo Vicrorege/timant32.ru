@@ -163,15 +163,15 @@ function App() {
           <TypewriterEffect />
         </h1>
         {!hideWidgets && (
-          <div className="TwoColumns" style={{ alignItems: 'stretch' }}>
-            <div className="TelegramContainer" style={{ height: '100%' }}>
+          <div className="TwoColumns">
+            <div className="TelegramContainer">
               <TelegramWidget 
                 key={i18n.language}
                 channel={t('telegram_channel')} 
                 postId={t('telegram_post_id')} 
               />
             </div>
-            <div className="SideWidgets" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="SideWidgets">
               <StatusWidget />
               <CountdownWidget />
               <AsciiVisualizerWidget width={asciiSize.w} height={asciiSize.h} />

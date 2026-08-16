@@ -23,12 +23,13 @@ const TIERS = {
   },
   commodity: {
     label: 'commodity-tld',
-    primary: '#7CFF00',
-    glow: 'rgba(124, 255, 0, 0.45)',
-    border: 'rgba(124, 255, 0, 0.45)',
-    gradientStart: '#B8FF4A',
-    gradientEnd: '#3DCC00',
-    grid: 'rgba(124, 255, 0, 0.045)',
+    // distinct from .ru matrix green — electric magenta
+    primary: '#FF2E8A',
+    glow: 'rgba(255, 46, 138, 0.5)',
+    border: 'rgba(255, 46, 138, 0.45)',
+    gradientStart: '#FF6BB5',
+    gradientEnd: '#C4005C',
+    grid: 'rgba(255, 46, 138, 0.045)',
   },
   mid: {
     label: 'mid-tld',
