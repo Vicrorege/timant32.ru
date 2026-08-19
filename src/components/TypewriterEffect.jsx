@@ -10,6 +10,7 @@ const TypewriterEffect = () => {
     t('phrase2'), 1500,
     t('phrase3'), 1500,
     t('phrase4'), 1500,
+    t('phrase5'), 300,
     '', 500, 
   ];
 
