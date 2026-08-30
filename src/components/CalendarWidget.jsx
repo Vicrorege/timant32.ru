@@ -111,8 +111,6 @@ function collectEvents(comp, fromMs, toMs, now) {
   comp.getAllSubcomponents('vevent').forEach((vevent) => {
     const event = new ICAL.Event(vevent);
     const meta = parseEventMeta(event.summary || '');
-    const recurring = event.isRecurring();
-
     getOccurrences(event, fromMs, toMs).forEach((occ) => {
       const key = `${meta.title}|${occ.startMs}`;
       if (seen.has(key)) return;
@@ -125,7 +123,6 @@ function collectEvents(comp, fromMs, toMs, now) {
         startMs: occ.startMs,
         endMs: occ.endMs,
         dayKey: mskDateKey(occ.start),
-        recurring,
         status:
           now >= occ.startMs && now <= occ.endMs
             ? 'active'
@@ -353,11 +350,6 @@ function WeekGridCalendar({ events, weekStartMs, onClose }) {
                       }
                     >
                       <div className="calendar-grid-event-title">{evt.title}</div>
-                      {evt.recurring && (
-                        <span className="calendar-grid-event-recur" aria-hidden>
-                          ↻
-                        </span>
-                      )}
                     </div>
                   ))}
 
