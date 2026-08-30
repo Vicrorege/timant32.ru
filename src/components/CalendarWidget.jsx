@@ -88,13 +88,17 @@ function getOccurrences(event, fromMs, toMs) {
   };
 
   if (event.isRecurring()) {
-    const iterStart = ICAL.Time.fromJSDate(new Date(fromMs), false);
-    const iter = event.iterator(iterStart);
+    const iter = event.iterator();
     let nextStart;
     let safety = 0;
 
-    while ((nextStart = iter.next()) && safety++ < 400) {
-      if (nextStart.toJSDate().getTime() > toMs) break;
+    while ((nextStart = iter.next()) && safety++ < 500) {
+      const start = nextStart.toJSDate();
+      const end = new Date(start.getTime() + durationMs);
+      const startMs = start.getTime();
+      const endMs = end.getTime();
+      if (endMs < fromMs) continue;
+      if (startMs > toMs) break;
       pushOccurrence(nextStart);
     }
   } else {
@@ -111,6 +115,8 @@ function collectEvents(comp, fromMs, toMs, now) {
   comp.getAllSubcomponents('vevent').forEach((vevent) => {
     const event = new ICAL.Event(vevent);
     const meta = parseEventMeta(event.summary || '');
+    const recurring = event.isRecurring();
+
     getOccurrences(event, fromMs, toMs).forEach((occ) => {
       const key = `${meta.title}|${occ.startMs}`;
       if (seen.has(key)) return;
@@ -123,6 +129,7 @@ function collectEvents(comp, fromMs, toMs, now) {
         startMs: occ.startMs,
         endMs: occ.endMs,
         dayKey: mskDateKey(occ.start),
+        recurring,
         status:
           now >= occ.startMs && now <= occ.endMs
             ? 'active'
@@ -171,8 +178,11 @@ function eventStyleForDay(evt, dayStartMs, dayEndMs) {
 
   const startMin = mskMinutesFromMidnight(new Date(clipStart));
   const endMin = mskMinutesFromMidnight(new Date(clipEnd));
+  const durationMin = endMin - startMin;
+  if (durationMin < 8) return null;
+
   const top = (startMin / 60) * HOUR_HEIGHT;
-  const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 18);
+  const height = Math.max((durationMin / 60) * HOUR_HEIGHT, 18);
 
   return { top, height };
 }
@@ -350,6 +360,11 @@ function WeekGridCalendar({ events, weekStartMs, onClose }) {
                       }
                     >
                       <div className="calendar-grid-event-title">{evt.title}</div>
+                      {evt.recurring && (
+                        <span className="calendar-grid-event-recur" aria-hidden>
+                          ↻
+                        </span>
+                      )}
                     </div>
                   ))}
 
