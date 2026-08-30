@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ICAL from 'ical.js';
 import { useTranslation } from 'react-i18next';
 
-const UPCOMING_WINDOW_MS = 24 * 60 * 60 * 1000;
-const RECUR_LOOKBACK_MS = 2 * 24 * 60 * 60 * 1000;
+const RECUR_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
+const TZ = 'Europe/Moscow';
+const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function parseEventMeta(summary = '') {
   const [title, tags = ''] = summary.split('|');
@@ -17,6 +19,26 @@ function parseEventMeta(summary = '') {
       tags.match(/\[color(?:hex)?=([^\]]+)\]/)?.[1] ||
       (tags.includes('[event]') ? '#00FF00' : '#ff3333'),
   };
+}
+
+function mskDateKey(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(date);
+}
+
+function mskMidnightMs(dateKey) {
+  return Date.parse(`${dateKey}T00:00:00+03:00`);
+}
+
+function getWeekBounds(now = Date.now()) {
+  const todayKey = mskDateKey(new Date(now));
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ,
+    weekday: 'short',
+  }).format(new Date(now));
+  const dayMap = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+  const dayIdx = dayMap[weekday] ?? 0;
+  const weekStartMs = mskMidnightMs(todayKey) - dayIdx * DAY_MS;
+  return { weekStartMs, weekEndMs: weekStartMs + 7 * DAY_MS };
 }
 
 function getOccurrences(event, fromMs, toMs) {
@@ -40,7 +62,7 @@ function getOccurrences(event, fromMs, toMs) {
     let nextStart;
     let safety = 0;
 
-    while ((nextStart = iter.next()) && safety++ < 200) {
+    while ((nextStart = iter.next()) && safety++ < 300) {
       const startMs = nextStart.toJSDate().getTime();
       if (startMs > toMs) break;
       pushOccurrence(nextStart);
@@ -52,40 +74,93 @@ function getOccurrences(event, fromMs, toMs) {
   return occurrences;
 }
 
-function formatWhen(start, end, now) {
-  const sameDay = start.toDateString() === end.toDateString();
-  const dateFmt = new Intl.DateTimeFormat('ru-RU', {
-    timeZone: 'Europe/Moscow',
-    day: '2-digit',
-    month: '2-digit',
+function collectEvents(comp, fromMs, toMs, now) {
+  const seen = new Set();
+  const collected = [];
+
+  comp.getAllSubcomponents('vevent').forEach((vevent) => {
+    const event = new ICAL.Event(vevent);
+    const meta = parseEventMeta(event.summary || '');
+
+    getOccurrences(event, fromMs, toMs).forEach((occ) => {
+      const key = `${meta.title}|${occ.startMs}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      const isActive = now >= occ.startMs && now <= occ.endMs;
+      collected.push({
+        ...meta,
+        start: occ.start,
+        end: occ.end,
+        startMs: occ.startMs,
+        endMs: occ.endMs,
+        dayKey: mskDateKey(occ.start),
+        status: isActive ? 'active' : occ.startMs > now ? 'upcoming' : 'past',
+      });
+    });
   });
-  const timeFmt = new Intl.DateTimeFormat('ru-RU', {
-    timeZone: 'Europe/Moscow',
+
+  collected.sort((a, b) => a.startMs - b.startMs);
+  return collected;
+}
+
+function formatTime(date) {
+  return new Intl.DateTimeFormat('ru-RU', {
+    timeZone: TZ,
     hour: '2-digit',
     minute: '2-digit',
-  });
+  }).format(date);
+}
 
-  const startDate = dateFmt.format(start);
-  const startTime = timeFmt.format(start);
-  const endTime = timeFmt.format(end);
-
-  if (now >= start.getTime() && now <= end.getTime()) {
-    return sameDay ? `до ${endTime}` : `${startDate} ${startTime} – ${endTime}`;
+function formatCompact(evt, now) {
+  const time = formatTime(evt.start);
+  if (evt.status === 'active') {
+    return `${evt.header} · ${evt.title} · до ${formatTime(evt.end)}`;
   }
+  const today = mskDateKey(new Date(now));
+  const tomorrow = mskDateKey(new Date(now + DAY_MS));
+  let dayLabel;
+  if (evt.dayKey === today) dayLabel = 'сегодня';
+  else if (evt.dayKey === tomorrow) dayLabel = 'завтра';
+  else {
+    dayLabel = new Intl.DateTimeFormat('ru-RU', {
+      timeZone: TZ,
+      day: '2-digit',
+      month: '2-digit',
+    }).format(evt.start);
+  }
+  return `${evt.title} · ${dayLabel} ${time}`;
+}
 
-  const today = dateFmt.format(new Date(now));
-  const tomorrow = dateFmt.format(new Date(now + 24 * 60 * 60 * 1000));
-  const eventDay = dateFmt.format(start);
+function formatWeekRange(weekStartMs) {
+  const start = new Date(weekStartMs + MSK_OFFSET_MS);
+  const end = new Date(weekStartMs + 6 * DAY_MS + MSK_OFFSET_MS);
+  const fmt = new Intl.DateTimeFormat('ru-RU', {
+    timeZone: TZ,
+    day: 'numeric',
+    month: 'short',
+  });
+  return `${fmt.format(start)} – ${fmt.format(end)}`;
+}
 
-  let dayLabel = startDate;
-  if (eventDay === today) dayLabel = 'сегодня';
-  else if (eventDay === tomorrow) dayLabel = 'завтра';
-
-  return sameDay ? `${dayLabel} ${startTime}` : `${dayLabel} ${startTime} – ${endTime}`;
+function dayLabel(dayKey, now) {
+  const today = mskDateKey(new Date(now));
+  const tomorrow = mskDateKey(new Date(now + DAY_MS));
+  if (dayKey === today) return 'Сегодня';
+  if (dayKey === tomorrow) return 'Завтра';
+  const [y, m, d] = dayKey.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return new Intl.DateTimeFormat('ru-RU', {
+    timeZone: TZ,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(date);
 }
 
 const CalendarWidget = () => {
-  const [events, setEvents] = useState([]);
+  const [weekEvents, setWeekEvents] = useState([]);
+  const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -95,7 +170,7 @@ const CalendarWidget = () => {
       try {
         const res = await fetch(`/api/calendar?t=${Date.now()}`);
         if (res.status === 204) {
-          if (!cancelled) setEvents([]);
+          if (!cancelled) setWeekEvents([]);
           return;
         }
         if (!res.ok) {
@@ -105,42 +180,19 @@ const CalendarWidget = () => {
 
         const data = await res.text();
         if (!data?.trim()) {
-          if (!cancelled) setEvents([]);
+          if (!cancelled) setWeekEvents([]);
           return;
         }
 
         const comp = new ICAL.Component(ICAL.parse(data));
         const now = Date.now();
-        const fromMs = now - RECUR_LOOKBACK_MS;
-        const toMs = now + UPCOMING_WINDOW_MS;
-        const seen = new Set();
-        const collected = [];
+        const { weekStartMs, weekEndMs } = getWeekBounds(now);
+        const fromMs = weekStartMs - RECUR_LOOKBACK_MS;
+        const events = collectEvents(comp, fromMs, weekEndMs, now).filter(
+          (evt) => evt.startMs >= weekStartMs && evt.startMs < weekEndMs
+        );
 
-        comp.getAllSubcomponents('vevent').forEach((vevent) => {
-          const event = new ICAL.Event(vevent);
-          const meta = parseEventMeta(event.summary || '');
-
-          getOccurrences(event, fromMs, toMs).forEach((occ) => {
-            const isActive = now >= occ.startMs && now <= occ.endMs;
-            const isUpcoming = occ.startMs > now;
-            if (!isActive && !isUpcoming) return;
-
-            const key = `${meta.title}|${occ.startMs}`;
-            if (seen.has(key)) return;
-            seen.add(key);
-
-            collected.push({
-              ...meta,
-              when: formatWhen(occ.start, occ.end, now),
-              sortKey: isActive ? occ.startMs : occ.startMs + 1e15,
-              status: isActive ? 'active' : 'upcoming',
-            });
-          });
-        });
-
-        collected.sort((a, b) => a.sortKey - b.sortKey);
-
-        if (!cancelled) setEvents(collected.slice(0, 4));
+        if (!cancelled) setWeekEvents(events);
       } catch (error) {
         console.warn('[calendar] parse/fetch failed', error);
       }
@@ -154,115 +206,150 @@ const CalendarWidget = () => {
     };
   }, []);
 
-  if (!events.length) return null;
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const preview = useMemo(() => {
+    const now = Date.now();
+    const active = weekEvents.find((evt) => evt.status === 'active');
+    if (active) return active;
+    return weekEvents.find((evt) => evt.status === 'upcoming') || weekEvents[0];
+  }, [weekEvents]);
+
+  const weekByDay = useMemo(() => {
+    const now = Date.now();
+    const { weekStartMs } = getWeekBounds(now);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const dayKey = mskDateKey(new Date(weekStartMs + i * DAY_MS));
+      days.push({
+        dayKey,
+        label: dayLabel(dayKey, now),
+        events: weekEvents.filter((evt) => evt.dayKey === dayKey),
+      });
+    }
+    return { weekStartMs, days };
+  }, [weekEvents]);
+
+  if (!weekEvents.length) return null;
+
+  const now = Date.now();
+  const { weekStartMs } = weekByDay;
 
   return (
-    <div
-      className="WidgetContainer"
-      style={{ flexDirection: 'column', alignItems: 'stretch' }}
-    >
+    <>
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid var(--border-color)',
-          paddingBottom: '8px',
-          marginBottom: '12px',
-        }}
+        className="WidgetContainer calendar-widget-compact"
+        style={{ flexDirection: 'column', alignItems: 'stretch', cursor: 'pointer' }}
+        onClick={() => setOpen(true)}
+        title={t('calendar_week_hint', 'Click for this week')}
       >
-        <span
+        <div
           style={{
-            backgroundColor: 'var(--color-primary)',
-            color: '#000',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            marginRight: '10px',
-            fontSize: '0.9rem',
-            textShadow: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            minWidth: 0,
           }}
         >
-          📅
-        </span>
-        <span
-          style={{
-            color: 'var(--color-primary)',
-            fontWeight: 'bold',
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            fontSize: '0.85rem',
-          }}
-        >
-          {t('calendar', 'Calendar')}
-        </span>
-      </div>
-      <div
-        className="WidgetContent"
-        style={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          overflow: 'visible',
-        }}
-      >
-        {events.map((evt, i) => (
+          <span style={{ flexShrink: 0 }}>📅</span>
           <div
-            key={`${evt.title}-${evt.when}-${i}`}
-            onClick={
-              evt.url
-                ? () => window.open(evt.url, '_blank', 'noopener,noreferrer')
-                : undefined
-            }
             style={{
-              cursor: evt.url ? 'pointer' : 'default',
-              display: 'flex',
-              alignItems: 'flex-start',
+              color: preview?.color || 'var(--color-primary)',
+              fontSize: '0.8rem',
+              fontWeight: preview?.status === 'active' ? 700 : 500,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              minWidth: 0,
+              flex: 1,
             }}
           >
-            <div
-              style={{
-                color: evt.color,
-                marginRight: '8px',
-                fontSize: '12px',
-                marginTop: '2px',
-              }}
-            >
-              ●
+            {preview ? formatCompact(preview, now) : t('calendar', 'Calendar')}
+          </div>
+          <span
+            style={{
+              color: 'var(--color-secondary-text)',
+              fontSize: '0.65rem',
+              flexShrink: 0,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {weekEvents.length}
+          </span>
+        </div>
+      </div>
+
+      {open && (
+        <div className="calendar-week-overlay" onClick={() => setOpen(false)}>
+          <div
+            className="calendar-week-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="calendar-week-header">
+              <div>
+                <div className="calendar-week-title">{t('calendar', 'Calendar')}</div>
+                <div className="calendar-week-subtitle">{formatWeekRange(weekStartMs)}</div>
+              </div>
+              <button
+                type="button"
+                className="calendar-week-close"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <div
-                style={{
-                  color: evt.color,
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {evt.status === 'upcoming' ? 'SOON' : evt.header}
-              </div>
-              <div
-                style={{
-                  color: 'var(--color-text)',
-                  fontSize: '0.85rem',
-                  wordBreak: 'break-word',
-                }}
-              >
-                {evt.title}
-              </div>
-              <div
-                style={{
-                  color: 'var(--color-secondary-text)',
-                  fontSize: '0.75rem',
-                  marginTop: '2px',
-                }}
-              >
-                {evt.when}
-              </div>
+
+            <div className="calendar-week-body">
+              {weekByDay.days.map((day) => (
+                <div key={day.dayKey} className="calendar-week-day">
+                  <div className="calendar-week-day-label">{day.label}</div>
+                  {day.events.length ? (
+                    day.events.map((evt) => (
+                      <div
+                        key={`${evt.title}-${evt.startMs}`}
+                        className={`calendar-week-event${evt.url ? ' clickable' : ''}`}
+                        onClick={
+                          evt.url
+                            ? (e) => {
+                                e.stopPropagation();
+                                window.open(evt.url, '_blank', 'noopener,noreferrer');
+                              }
+                            : undefined
+                        }
+                      >
+                        <span
+                          className="calendar-week-dot"
+                          style={{ color: evt.color }}
+                        >
+                          ●
+                        </span>
+                        <div className="calendar-week-event-main">
+                          <div className="calendar-week-event-time">
+                            {formatTime(evt.start)}–{formatTime(evt.end)}
+                          </div>
+                          <div className="calendar-week-event-title">{evt.title}</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="calendar-week-empty">—</div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 
