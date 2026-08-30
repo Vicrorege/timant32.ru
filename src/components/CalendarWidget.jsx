@@ -340,8 +340,7 @@ function WeekGridCalendar({ events, weekStartMs, onClose }) {
                       style={{
                         top: evt.top,
                         height: evt.height,
-                        borderColor: evt.color,
-                        backgroundColor: `color-mix(in srgb, ${evt.color} 22%, var(--color-surface))`,
+                        '--evt-color': evt.color,
                       }}
                       title={`${evt.title}\n${formatTime(evt.start)} – ${formatTime(evt.end)}`}
                       onClick={
