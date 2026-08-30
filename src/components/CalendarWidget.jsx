@@ -28,7 +28,7 @@ const CalendarWidget = () => {
         }
 
         const comp = new ICAL.Component(ICAL.parse(data));
-        const nowMsk = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+        const now = Date.now();
         const active = [];
 
         comp.getAllSubcomponents('vevent').forEach((vevent) => {
@@ -45,13 +45,13 @@ const CalendarWidget = () => {
             while ((nextStart = iter.next()) && maxLoops-- > 0) {
               const start = nextStart.toJSDate();
               const end = new Date(start.getTime() + durationMs);
-              if (nowMsk >= start && nowMsk <= end) isHappening = true;
-              if (start > nowMsk) break;
+              if (now >= start.getTime() && now <= end.getTime()) isHappening = true;
+              if (start.getTime() > now) break;
             }
           } else {
             const start = event.startDate.toJSDate();
             const end = new Date(start.getTime() + durationMs);
-            if (nowMsk >= start && nowMsk <= end) isHappening = true;
+            if (now >= start.getTime() && now <= end.getTime()) isHappening = true;
           }
 
           if (isHappening) {
