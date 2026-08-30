@@ -152,25 +152,6 @@ function formatTime(date) {
   }).format(date);
 }
 
-function formatCompact(evt, now) {
-  if (evt.status === 'active') {
-    return `${evt.header} · ${evt.title} · до ${formatTime(evt.end)}`;
-  }
-  const today = mskDateKey(new Date(now));
-  const tomorrow = mskDateKey(new Date(now + DAY_MS));
-  let dayLabel;
-  if (evt.dayKey === today) dayLabel = 'сегодня';
-  else if (evt.dayKey === tomorrow) dayLabel = 'завтра';
-  else {
-    dayLabel = new Intl.DateTimeFormat('ru-RU', {
-      timeZone: TZ,
-      day: '2-digit',
-      month: '2-digit',
-    }).format(evt.start);
-  }
-  return `${evt.title} · ${dayLabel} ${formatTime(evt.start)}`;
-}
-
 function eventStyleForDay(evt, dayStartMs, dayEndMs) {
   const clipStart = Math.max(evt.startMs, dayStartMs);
   const clipEnd = Math.min(evt.endMs, dayEndMs);
@@ -386,6 +367,7 @@ function WeekGridCalendar({ events, weekStartMs, onClose }) {
 
 const CalendarWidget = () => {
   const [allEvents, setAllEvents] = useState([]);
+  const [calendarLoaded, setCalendarLoaded] = useState(false);
   const [weekStartMs, setWeekStartMs] = useState(() => getWeekBounds().weekStartMs);
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
@@ -397,7 +379,10 @@ const CalendarWidget = () => {
       try {
         const res = await fetch(`/api/calendar?t=${Date.now()}`);
         if (res.status === 204) {
-          if (!cancelled) setAllEvents([]);
+          if (!cancelled) {
+            setAllEvents([]);
+            setCalendarLoaded(false);
+          }
           return;
         }
         if (!res.ok) {
@@ -422,6 +407,7 @@ const CalendarWidget = () => {
         if (!cancelled) {
           setAllEvents(events);
           setWeekStartMs(currentWeekStart);
+          setCalendarLoaded(true);
         }
       } catch (error) {
         console.warn('[calendar] parse/fetch failed', error);
@@ -445,23 +431,12 @@ const CalendarWidget = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  const weekEvents = useMemo(() => {
-    const weekEndMs = weekStartMs + 7 * DAY_MS;
-    return allEvents.filter(
-      (evt) => evt.startMs < weekEndMs && evt.endMs > weekStartMs
-    );
-  }, [allEvents, weekStartMs]);
-
-  const preview = useMemo(() => {
+  const activeEvent = useMemo(() => {
     const now = Date.now();
-    const active = weekEvents.find((evt) => evt.status === 'active');
-    if (active) return active;
-    return weekEvents.find((evt) => evt.status === 'upcoming') || weekEvents[0];
-  }, [weekEvents]);
+    return allEvents.find((evt) => now >= evt.startMs && now <= evt.endMs) || null;
+  }, [allEvents]);
 
-  if (!weekEvents.length) return null;
-
-  const now = Date.now();
+  if (!calendarLoaded) return null;
 
   return (
     <>
@@ -471,41 +446,78 @@ const CalendarWidget = () => {
         onClick={() => setOpen(true)}
         title={t('calendar_week_hint', 'Click for this week')}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            minWidth: 0,
-          }}
-        >
-          <span style={{ flexShrink: 0 }}>📅</span>
+        {activeEvent ? (
           <div
             style={{
-              color: preview?.color || 'var(--color-primary)',
-              fontSize: '0.8rem',
-              fontWeight: preview?.status === 'active' ? 700 : 500,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
               minWidth: 0,
-              flex: 1,
             }}
           >
-            {preview ? formatCompact(preview, now) : t('calendar', 'Calendar')}
+            <span
+              style={{
+                color: activeEvent.color,
+                fontSize: '10px',
+                flexShrink: 0,
+              }}
+            >
+              ●
+            </span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div
+                style={{
+                  color: activeEvent.color,
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.2,
+                }}
+              >
+                {activeEvent.header}
+              </div>
+              <div
+                style={{
+                  color: 'var(--color-text)',
+                  fontSize: '0.8rem',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {activeEvent.title}
+                <span style={{ color: 'var(--color-secondary-text)' }}>
+                  {' '}
+                  · до {formatTime(activeEvent.end)}
+                </span>
+              </div>
+            </div>
+            <span style={{ flexShrink: 0 }}>📅</span>
           </div>
-          <span
+        ) : (
+          <div
             style={{
-              color: 'var(--color-secondary-text)',
-              fontSize: '0.65rem',
-              flexShrink: 0,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              minWidth: 0,
             }}
           >
-            {weekEvents.length}
-          </span>
-        </div>
+            <span style={{ flexShrink: 0 }}>📅</span>
+            <div
+              style={{
+                color: 'var(--color-primary)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {t('calendar', 'Календарь')}
+            </div>
+          </div>
+        )}
       </div>
 
       {open && (

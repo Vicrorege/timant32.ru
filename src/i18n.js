@@ -15,7 +15,9 @@ const resources = {
       telegram_channel: 'timant32info',
       telegram_post_id: '4',
       servers: "Серверы",
-      online: "В сети"
+      online: "В сети",
+      calendar: "Календарь",
+      calendar_week_hint: "Клик — неделя"
     }
   },
   en: {
@@ -30,7 +32,9 @@ const resources = {
       telegram_channel: 'timant32info', 
       telegram_post_id: '7',
       servers: "Servers",
-      online: "Online"
+      online: "Online",
+      calendar: "Calendar",
+      calendar_week_hint: "Click for week view"
     }
   }
 };
