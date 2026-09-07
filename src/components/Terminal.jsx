@@ -20,9 +20,17 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
       let output = '';
 
       if (cmd === 'help') {
-        output = 'commands: help, clear, show, ping, whoami, hostname, dig, reboot, ascii <w> <h>';
+        output = 'commands: help, clear, show, ping, whoami, hostname, dig, github, reboot, ascii <w> <h>';
       } else if (cmd === 'ping') {
         output = 'pong';
+      } else if (cmd === 'github' || cmd === 'gh' || cmd === 'stats') {
+        output = [
+          'GitHub Profile: https://github.com/Vicrorege',
+          'User: Vicrorege (timant32)',
+          'Repos: 7 | Followers: 4 | Yearly Contribs: 340+',
+          'Latest push: schedule2cal (Python)',
+          'Stack: Python, React/JS, Go, C++, Arch Linux',
+        ].join('\n');
       } else if (cmd === 'whoami') {
         output = `tim\nskills: Python, C++, React, Arch Linux, DevOps\nsession: ${ingress.host}`;
       } else if (cmd === 'hostname' || cmd === 'host') {

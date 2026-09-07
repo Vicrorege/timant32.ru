@@ -476,6 +476,233 @@ html::after {
 }
 
 /* ================================================= */
+/* 6.1 GITHUB WIDGET                                 */
+/* ================================================= */
+
+.GithubWidget {
+  margin-bottom: 20px;
+}
+
+.gh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.gh-badge {
+  background-color: var(--color-primary);
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-right: 10px;
+  font-size: 0.9rem;
+  text-shadow: none;
+  line-height: 1;
+}
+
+.gh-title {
+  color: var(--color-primary);
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.gh-user-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-primary) 50%, transparent);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.gh-user-link:hover {
+  border-bottom-style: solid;
+  border-bottom-color: var(--color-primary);
+  filter: brightness(1.2);
+}
+
+.gh-arrow {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.gh-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.gh-metric-card {
+  background-color: rgba(0, 0, 0, 0.45);
+  border: 1px solid color-mix(in srgb, var(--border-color) 40%, transparent);
+  border-radius: 6px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.gh-metric-label {
+  font-size: 0.62rem;
+  color: var(--color-secondary-text);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+
+.gh-metric-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.1;
+  font-family: var(--font-main);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--glow-color) 40%, transparent);
+}
+
+.gh-latest-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text);
+  margin-bottom: 10px;
+  padding: 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-latest-label {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.gh-latest-link {
+  color: var(--color-text);
+  text-decoration: none;
+  border-bottom: 1px dotted color-mix(in srgb, var(--color-primary) 50%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.gh-latest-link:hover {
+  color: var(--color-primary);
+  border-bottom-style: solid;
+}
+
+.gh-latest-time {
+  color: var(--color-secondary-text);
+  font-size: 0.72rem;
+}
+
+.gh-heatmap-wrapper {
+  background-color: rgba(0, 0, 0, 0.45);
+  border: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+  border-radius: 8px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.gh-heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 8px);
+  grid-auto-columns: 8px;
+  grid-auto-flow: column;
+  gap: 2.5px;
+  justify-content: center;
+  width: 100%;
+  overflow-x: auto;
+  padding: 2px 0;
+}
+
+.gh-cell {
+  width: 8px;
+  height: 8px;
+  border-radius: 1.5px;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.gh-cell:not(.gh-legend-cell):hover {
+  transform: scale(1.4);
+  z-index: 5;
+  filter: brightness(1.3);
+  box-shadow: 0 0 5px var(--glow-color);
+}
+
+.gh-level-0 {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.gh-level-1 {
+  background-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.gh-level-2 {
+  background-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+}
+
+.gh-level-3 {
+  background-color: color-mix(in srgb, var(--color-primary) 80%, transparent);
+}
+
+.gh-level-4 {
+  background-color: var(--color-primary);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--glow-color) 60%, transparent);
+}
+
+.gh-heatmap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.65rem;
+  color: var(--color-secondary-text);
+  padding: 0 2px;
+}
+
+.gh-footer-text {
+  opacity: 0.85;
+}
+
+.gh-legend {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+}
+
+.gh-legend-label {
+  font-size: 0.6rem;
+  opacity: 0.7;
+}
+
+.gh-legend-cell {
+  width: 6.5px;
+  height: 6.5px;
+}
+
+/* ================================================= */
 /* 7. АДАПТИВНОСТЬ (MEDIA QUERIES)                   */
 /* ================================================= */
 
@@ -847,6 +1074,15 @@ html::after {
   color: #f2f2f2;
   word-break: break-word;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+.calendar-grid-event-recur {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.75);
+  opacity: 0.9;
 }
 
 .calendar-grid-now {

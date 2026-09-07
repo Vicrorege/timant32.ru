@@ -6,6 +6,7 @@ import LastFmWidget from './components/LastFmWidget';
 import CalendarWidget from './components/CalendarWidget';
 import TelegramWidget from './components/TelegramWidget'; 
 import StatusWidget from './components/StatusWidget';
+import GithubWidget from './components/GithubWidget';
 import ContactWidget from './components/ContactWidget';
 import BootScreen from './components/BootScreen';
 import Terminal from './components/Terminal';
@@ -175,6 +176,7 @@ function App() {
             </div>
             <div className="SideWidgets">
               <StatusWidget />
+              <GithubWidget />
               <CountdownWidget />
               <AsciiVisualizerWidget
                 width={asciiSize?.w}

@@ -17,7 +17,18 @@ const resources = {
       servers: "Серверы",
       online: "В сети",
       calendar: "Календарь",
-      calendar_week_hint: "Клик — неделя"
+      calendar_week_hint: "Клик — неделя",
+      github: "GitHub",
+      github_repos: "Репозитории",
+      github_contribs: "Коммиты",
+      github_followers: "Фолловеры",
+      github_latest: "Свежий пуш",
+      github_in_last_year: "вкладов за год",
+      github_contrib_count: "вкладов",
+      github_less: "меньше",
+      github_more: "больше",
+      github_just_now: "только что",
+      github_yesterday: "вчера"
     }
   },
   en: {
@@ -34,7 +45,18 @@ const resources = {
       servers: "Servers",
       online: "Online",
       calendar: "Calendar",
-      calendar_week_hint: "Click for week view"
+      calendar_week_hint: "Click for week view",
+      github: "GitHub",
+      github_repos: "Repositories",
+      github_contribs: "Commits",
+      github_followers: "Followers",
+      github_latest: "Latest push",
+      github_in_last_year: "contribs in past year",
+      github_contrib_count: "contribs",
+      github_less: "less",
+      github_more: "more",
+      github_just_now: "just now",
+      github_yesterday: "yesterday"
     }
   }
 };
