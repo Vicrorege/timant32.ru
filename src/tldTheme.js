@@ -191,12 +191,21 @@ const TLD_TIER = {
   rich: 'luxury',
 };
 
-function parseHost(hostname = '') {
-  const host = String(hostname).toLowerCase().replace(/\.$/, '');
-  if (!host || host === 'localhost') {
+export function parseHost(rawHostname = '') {
+  let host = String(rawHostname || '').toLowerCase().trim();
+  // Strip protocol if accidentally included
+  host = host.replace(/^https?:\/\//, '');
+  // Strip pathname and query
+  host = host.split('/')[0].split('?')[0];
+  // Strip port (e.g. "timant32.ru:8067" -> "timant32.ru", "[::1]:80" -> "[::1]")
+  host = host.replace(/:\d+$/, '').replace(/\.$/, '');
+
+  if (!host || host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {
     return { host: host || 'localhost', tld: 'localhost', sld: 'localhost' };
   }
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':')) {
+
+  // Pure IP address
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
     return { host, tld: 'localhost', sld: host };
   }
 
@@ -206,19 +215,32 @@ function parseHost(hostname = '') {
   }
 
   const tld = parts[parts.length - 1];
+  // For domains like "timant32.ru", sld is "timant32"
+  // For subdomains like "www.timant32.ru", sld is "timant32"
   const sld = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
   return { host, tld, sld };
 }
 
-export function resolveIngress(hostname = typeof window !== 'undefined' ? window.location.hostname : 'timant32.ru') {
-  const { host, tld, sld } = parseHost(hostname);
+export function resolveIngress(hostname) {
+  const currentHost =
+    hostname !== undefined
+      ? hostname
+      : typeof window !== 'undefined'
+      ? window.location.hostname
+      : 'timant32.ru';
+
+  const { host, tld, sld } = parseHost(currentHost);
   const tierKey = TLD_TIER[tld] || 'budget';
-  let theme = TIERS[tierKey];
+  let theme = TIERS[tierKey] || TIERS.budget;
 
   if (typeof window !== 'undefined') {
-    const custom = localStorage.getItem('timant32_custom_theme');
-    if (custom && NAMED_THEMES[custom]) {
-      theme = NAMED_THEMES[custom];
+    try {
+      const custom = localStorage.getItem('timant32_custom_theme');
+      if (custom && NAMED_THEMES[custom]) {
+        theme = NAMED_THEMES[custom];
+      }
+    } catch {
+      // ignore localStorage errors
     }
   }
 
@@ -233,22 +255,27 @@ export function resolveIngress(hostname = typeof window !== 'undefined' ? window
   };
 }
 
-export function applyIngressTheme(ingress = resolveIngress()) {
-  if (typeof document === 'undefined') return ingress;
-  const root = document.documentElement;
-  const { theme, host, tier, tld } = ingress;
+export function applyIngressTheme(ingress) {
+  const resolved = ingress || resolveIngress();
+  if (typeof document === 'undefined') return resolved;
 
-  root.style.setProperty('--color-primary', theme.primary);
-  root.style.setProperty('--glow-color', theme.glow);
-  root.style.setProperty('--border-color', theme.border);
-  root.style.setProperty('--gradient-start', theme.gradientStart);
-  root.style.setProperty('--gradient-end', theme.gradientEnd);
-  root.style.setProperty('--grid-color', theme.grid);
+  const root = document.documentElement;
+  const { theme, host, tier, tld } = resolved;
+
+  if (theme) {
+    root.style.setProperty('--color-primary', theme.primary);
+    root.style.setProperty('--glow-color', theme.glow);
+    root.style.setProperty('--border-color', theme.border);
+    root.style.setProperty('--gradient-start', theme.gradientStart);
+    root.style.setProperty('--gradient-end', theme.gradientEnd);
+    root.style.setProperty('--grid-color', theme.grid);
+  }
+
   root.dataset.ingress = host;
   root.dataset.tld = tld;
   root.dataset.tldTier = tier;
 
-  return ingress;
+  return resolved;
 }
 
 export function applyCustomTheme(themeName) {
@@ -256,13 +283,22 @@ export function applyCustomTheme(themeName) {
   const normalized = String(themeName).toLowerCase().trim();
 
   if (normalized === 'default' || normalized === 'auto' || normalized === 'reset') {
-    localStorage.removeItem('timant32_custom_theme');
+    try {
+      localStorage.removeItem('timant32_custom_theme');
+    } catch {
+      // ignore
+    }
     const ingress = resolveIngress();
     applyIngressTheme(ingress);
     return { success: true, themeName: 'auto', theme: ingress.theme };
   }
 
-  const theme = NAMED_THEMES[normalized] || (normalized === 'matrix' ? NAMED_THEMES.green : null) || (normalized === 'fallout' ? NAMED_THEMES.amber : null) || (normalized === 'cyber' ? NAMED_THEMES.magenta : null) || (normalized === 'synthwave' ? NAMED_THEMES.cyan : null);
+  const theme =
+    NAMED_THEMES[normalized] ||
+    (normalized === 'matrix' ? NAMED_THEMES.green : null) ||
+    (normalized === 'fallout' ? NAMED_THEMES.amber : null) ||
+    (normalized === 'cyber' ? NAMED_THEMES.magenta : null) ||
+    (normalized === 'synthwave' ? NAMED_THEMES.cyan : null);
 
   if (!theme) {
     return {
@@ -271,12 +307,22 @@ export function applyCustomTheme(themeName) {
     };
   }
 
-  localStorage.setItem('timant32_custom_theme', normalized);
+  try {
+    localStorage.setItem('timant32_custom_theme', normalized);
+  } catch {
+    // ignore
+  }
+
   const ingress = resolveIngress();
   ingress.theme = theme;
   ingress.tierLabel = theme.name;
   applyIngressTheme(ingress);
   return { success: true, themeName: normalized, theme };
+}
+
+// Auto-apply immediately when script is parsed
+if (typeof document !== 'undefined') {
+  applyIngressTheme();
 }
 
 export default resolveIngress;

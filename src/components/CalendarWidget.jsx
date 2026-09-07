@@ -28,7 +28,7 @@ function parseEventMeta(summary = '') {
     url: tags.match(/\[onclick="([^"]+)"\]/)?.[1] || null,
     color:
       tags.match(/\[color(?:hex)?=([^\]]+)\]/)?.[1] ||
-      (tags.includes('[event]') ? '#00FF00' : '#888888'),
+      (tags.includes('[event]') ? 'var(--color-primary)' : '#888888'),
   };
 }
 

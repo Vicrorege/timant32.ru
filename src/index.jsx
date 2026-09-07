@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './i18n';
+import { applyIngressTheme } from './tldTheme';
+
+// Ensure ingress theme CSS variables and data attributes are set synchronously before React mount
+applyIngressTheme();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

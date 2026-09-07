@@ -21,6 +21,42 @@
     <meta property="og:image" content="https://timant32.ru/avatar.jpg" />
     <meta property="og:url" content="https://timant32.ru" />
     <meta name="theme-color" content="#00FF00" />
+    <script>
+      (function() {
+        try {
+          var h = (window.location.hostname || '').toLowerCase().replace(/:\d+$/, '').replace(/\.$/, '');
+          var tld = h.split('.').pop() || 'ru';
+          var custom = localStorage.getItem('timant32_custom_theme');
+          var map = {
+            commodity: { p: '#FF2E8A', g: 'rgba(255,46,138,0.5)', b: 'rgba(255,46,138,0.45)', s: '#FF6BB5', e: '#C4005C', gr: 'rgba(255,46,138,0.045)' },
+            mid: { p: '#00E5FF', g: 'rgba(0,229,255,0.5)', b: 'rgba(0,229,255,0.45)', s: '#66F0FF', e: '#0099CC', gr: 'rgba(0,229,255,0.045)' },
+            premium: { p: '#FFB000', g: 'rgba(255,176,0,0.5)', b: 'rgba(255,176,0,0.45)', s: '#FFD060', e: '#FF7A00', gr: 'rgba(255,176,0,0.045)' },
+            luxury: { p: '#FFD700', g: 'rgba(255,215,0,0.45)', b: 'rgba(255,215,0,0.55)', s: '#FFE680', e: '#FF9900', gr: 'rgba(255,215,0,0.05)' },
+            local: { p: '#7a7a7a', g: 'rgba(122,122,122,0.45)', b: 'rgba(122,122,122,0.55)', s: '#9a9a9a', e: '#555555', gr: 'rgba(122,122,122,0.05)' },
+            budget: { p: '#00FF00', g: 'rgba(0,255,0,0.5)', b: 'rgba(0,255,0,0.4)', s: '#00FF99', e: '#00CC33', gr: 'rgba(0,255,0,0.04)' }
+          };
+          var tldMap = {
+            com: 'commodity', net: 'commodity', org: 'commodity', info: 'commodity', xyz: 'commodity',
+            io: 'mid', dev: 'mid', app: 'mid', me: 'mid', co: 'mid', cc: 'mid', to: 'mid', is: 'mid', sh: 'mid', tech: 'mid',
+            ai: 'premium', gg: 'premium', tv: 'premium', fm: 'premium', so: 'premium',
+            luxury: 'luxury', crypto: 'luxury', nft: 'luxury',
+            localhost: 'local', '127.0.0.1': 'local'
+          };
+          var tier = tldMap[tld] || 'budget';
+          var th = map[tier] || map.budget;
+          var root = document.documentElement;
+          root.style.setProperty('--color-primary', th.p);
+          root.style.setProperty('--glow-color', th.g);
+          root.style.setProperty('--border-color', th.b);
+          root.style.setProperty('--gradient-start', th.s);
+          root.style.setProperty('--gradient-end', th.e);
+          root.style.setProperty('--grid-color', th.gr);
+          root.dataset.ingress = h;
+          root.dataset.tld = tld;
+          root.dataset.tldTier = tier;
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
