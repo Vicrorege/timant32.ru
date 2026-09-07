@@ -1,23 +1,8 @@
-const CACHE_NAME = 'timant32-pwa-v1';
-const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.ico',
-  '/avatar.jpg',
-  '/logo192.png',
-  '/logo512.png',
-  '/countdown.json',
-];
+const CACHE_NAME = 'timant32-pwa-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
-      .catch((err) => console.warn('[sw] precache failed', err))
-  );
+  // Activate new worker immediately
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -41,12 +26,12 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests and browser extensions
+  // Skip non-GET requests and chrome-extension://
   if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
     return;
   }
 
-  // 1. Navigation requests (HTML pages) -> Network first, fallback to cached /index.html
+  // 1. Navigation requests (HTML) -> Always Network First, never serve stale HTML on reload
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -66,15 +51,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static assets (Vite bundles in /assets/, fonts, images) -> Stale While Revalidate
+  // 2. Hashed static assets (/assets/*) -> Cache First with Network fallback (immutable)
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // 3. Fonts & Static media -> Stale While Revalidate
   if (
-    url.pathname.startsWith('/assets/') ||
     url.hostname.includes('fonts.googleapis.com') ||
     url.hostname.includes('fonts.gstatic.com') ||
-    request.destination === 'image' ||
     request.destination === 'font' ||
-    request.destination === 'style' ||
-    request.destination === 'script'
+    request.destination === 'image'
   ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
@@ -94,7 +93,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. API & Dynamic data (/api/*, countdown.json, telegram-cache, github-contributions) -> Network First with cache fallback
+  // 4. API & Dynamic data -> Network First with cache fallback
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname === '/countdown.json' ||
@@ -123,7 +122,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4. Default strategy -> Network with cache fallback
+  // 5. Default -> Network first
   event.respondWith(
     fetch(request)
       .then((response) => {

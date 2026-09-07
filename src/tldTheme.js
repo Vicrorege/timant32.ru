@@ -23,11 +23,11 @@ export const TIERS = {
   commodity: {
     label: 'commodity-tld',
     primary: '#FF2E8A',
-    glow: 'rgba(255, 46, 138, 0.5)',
-    border: 'rgba(255, 46, 138, 0.45)',
+    glow: 'rgba(255, 46, 138, 0.6)',
+    border: 'rgba(255, 46, 138, 0.5)',
     gradientStart: '#FF6BB5',
     gradientEnd: '#C4005C',
-    grid: 'rgba(255, 46, 138, 0.045)',
+    grid: 'rgba(255, 46, 138, 0.055)',
   },
   mid: {
     label: 'mid-tld',
