@@ -2,25 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import { resolveIngress } from '../tldTheme';
 
 const BootScreen = ({ onFinish }) => {
-  const [lines, setLines] = useState([]);
+  const ingress = resolveIngress();
+  const bootSequence = [
+    '[  OK  ] Mounted Root Filesystem.',
+    '[  OK  ] Reached target Local File Systems.',
+    `[  OK  ] Bound virtual host ${ingress.host}.`,
+    `[  OK  ] Applied accent profile (${ingress.tierLabel} / .${ingress.tld}).`,
+    '[  OK  ] Started React Framework.',
+    '[  OK  ] Started Nginx Web Server.',
+    '[  OK  ] Started Mailcow Server.',
+    '[  OK  ] Reached target Graphical Interface.',
+    `Starting ${ingress.host}...`,
+  ];
+
+  const [lines, setLines] = useState([bootSequence[0]]);
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
 
   useEffect(() => {
-    const ingress = resolveIngress();
-    const bootSequence = [
-      '[  OK  ] Mounted Root Filesystem.',
-      '[  OK  ] Reached target Local File Systems.',
-      `[  OK  ] Bound virtual host ${ingress.host}.`,
-      `[  OK  ] Applied accent profile (${ingress.tierLabel} / .${ingress.tld}).`,
-      '[  OK  ] Started React Framework.',
-      '[  OK  ] Started Nginx Web Server.',
-      '[  OK  ] Started Mailcow Server.',
-      '[  OK  ] Reached target Graphical Interface.',
-      `Starting ${ingress.host}...`,
-    ];
-
-    let currentIndex = 0;
+    let currentIndex = 1;
     let finishTimer;
 
     const interval = setInterval(() => {
@@ -32,13 +32,24 @@ const BootScreen = ({ onFinish }) => {
         currentIndex++;
       } else {
         clearInterval(interval);
-        finishTimer = setTimeout(() => onFinishRef.current?.(), 600);
+        finishTimer = setTimeout(() => onFinishRef.current?.(), 400);
       }
-    }, 150);
+    }, 120);
+
+    const handleSkip = () => {
+      clearInterval(interval);
+      clearTimeout(finishTimer);
+      onFinishRef.current?.();
+    };
+
+    window.addEventListener('keydown', handleSkip);
+    window.addEventListener('click', handleSkip);
 
     return () => {
       clearInterval(interval);
       clearTimeout(finishTimer);
+      window.removeEventListener('keydown', handleSkip);
+      window.removeEventListener('click', handleSkip);
     };
   }, []);
 
@@ -59,6 +70,8 @@ const BootScreen = ({ onFinish }) => {
         flexDirection: 'column',
         alignItems: 'flex-start',
         fontSize: '1rem',
+        cursor: 'pointer',
+        userSelect: 'none',
       }}
     >
       {lines.map((line, i) => (
@@ -72,6 +85,16 @@ const BootScreen = ({ onFinish }) => {
           )}
         </div>
       ))}
+      <div
+        style={{
+          marginTop: 'auto',
+          fontSize: '0.75rem',
+          color: 'var(--color-secondary-text)',
+          opacity: 0.6,
+        }}
+      >
+        [press any key or click to skip]
+      </div>
     </div>
   );
 };
