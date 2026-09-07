@@ -9,6 +9,7 @@ import StatusWidget from './components/StatusWidget';
 import GithubWidget from './components/GithubWidget';
 import ContactWidget from './components/ContactWidget';
 import BootScreen from './components/BootScreen';
+import MatrixRain from './components/MatrixRain';
 import Terminal from './components/Terminal';
 import CountdownWidget from './components/CountdownWidget';
 import AsciiVisualizerWidget from './components/AsciiVisualizerWidget';
@@ -21,6 +22,7 @@ function App() {
   const { t, i18n } = useTranslation(); 
   const [glitch, setGlitch] = useState(false);
   const [barrelRoll, setBarrelRoll] = useState(false);
+  const [matrixRain, setMatrixRain] = useState(false);
   const [isBooting, setIsBooting] = useState(!sessionStorage.getItem('booted'));
   const [hideWidgets, setHideWidgets] = useState(false);
   const [asciiSize, setAsciiSize] = useState(null);
@@ -121,6 +123,13 @@ function App() {
     } else if (cmd === 'reboot') {
       sessionStorage.removeItem('booted');
       setIsBooting(true);
+    } else if (cmd === 'matrix' || cmd === 'cmatrix') {
+      setMatrixRain(true);
+    } else if (cmd.startsWith('theme')) {
+      setIngress(resolveIngress());
+    } else if (cmd === 'sudo') {
+      setGlitch(true);
+      setTimeout(() => setGlitch(false), 3000);
     } else if (cmd.startsWith('ascii ')) {
       const parts = cmd.split(' ');
       if (parts[1] === 'auto') {
@@ -191,6 +200,7 @@ function App() {
         )}
         <Terminal onCommand={handleTerminalCommand} hostLabel={ingress.short} />
         <LanguageSwitcher /> 
+        {matrixRain && <MatrixRain onFinish={() => setMatrixRain(false)} />}
       </main>
     </div>
   );

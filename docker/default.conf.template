@@ -33,6 +33,18 @@ server {
     try_files $uri =404;
   }
 
+  location = /sw.js {
+    expires -1;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    try_files $uri =404;
+  }
+
+  location = /manifest.json {
+    expires 1d;
+    add_header Cache-Control "public";
+    try_files $uri =404;
+  }
+
   location / {
     try_files $uri $uri/ /index.html;
   }

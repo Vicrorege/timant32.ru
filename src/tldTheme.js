@@ -1,8 +1,7 @@
 /**
- * Approximate TLD "street price" tiers → accent palette.
- * Not market-accurate — just a fun ingress fingerprint.
+ * Ingress Fingerprint & Palette Themes
  */
-const TIERS = {
+export const TIERS = {
   local: {
     label: 'loopback',
     primary: '#7a7a7a',
@@ -23,7 +22,6 @@ const TIERS = {
   },
   commodity: {
     label: 'commodity-tld',
-    // distinct from .ru matrix green — electric magenta
     primary: '#FF2E8A',
     glow: 'rgba(255, 46, 138, 0.5)',
     border: 'rgba(255, 46, 138, 0.45)',
@@ -52,11 +50,86 @@ const TIERS = {
   luxury: {
     label: 'luxury-tld',
     primary: '#FFD700',
-    glow: 'rgba(255, 0, 170, 0.35)',
+    glow: 'rgba(255, 215, 0, 0.45)',
     border: 'rgba(255, 215, 0, 0.55)',
     gradientStart: '#FFE680',
-    gradientEnd: '#FF00AA',
+    gradientEnd: '#FF9900',
     grid: 'rgba(255, 215, 0, 0.05)',
+  },
+};
+
+export const NAMED_THEMES = {
+  green: {
+    name: 'matrix green',
+    primary: '#00FF00',
+    glow: 'rgba(0, 255, 0, 0.5)',
+    border: 'rgba(0, 255, 0, 0.4)',
+    gradientStart: '#00FF99',
+    gradientEnd: '#00CC33',
+    grid: 'rgba(0, 255, 0, 0.04)',
+  },
+  amber: {
+    name: 'fallout amber',
+    primary: '#FFB000',
+    glow: 'rgba(255, 176, 0, 0.5)',
+    border: 'rgba(255, 176, 0, 0.45)',
+    gradientStart: '#FFD060',
+    gradientEnd: '#FF7A00',
+    grid: 'rgba(255, 176, 0, 0.045)',
+  },
+  cyan: {
+    name: 'synthwave cyan',
+    primary: '#00E5FF',
+    glow: 'rgba(0, 229, 255, 0.5)',
+    border: 'rgba(0, 229, 255, 0.45)',
+    gradientStart: '#66F0FF',
+    gradientEnd: '#0099CC',
+    grid: 'rgba(0, 229, 255, 0.045)',
+  },
+  magenta: {
+    name: 'cyber magenta',
+    primary: '#FF2E8A',
+    glow: 'rgba(255, 46, 138, 0.5)',
+    border: 'rgba(255, 46, 138, 0.45)',
+    gradientStart: '#FF6BB5',
+    gradientEnd: '#C4005C',
+    grid: 'rgba(255, 46, 138, 0.045)',
+  },
+  gold: {
+    name: 'luxury gold',
+    primary: '#FFD700',
+    glow: 'rgba(255, 215, 0, 0.45)',
+    border: 'rgba(255, 215, 0, 0.55)',
+    gradientStart: '#FFE680',
+    gradientEnd: '#FF9900',
+    grid: 'rgba(255, 215, 0, 0.05)',
+  },
+  violet: {
+    name: 'neon violet',
+    primary: '#B347FF',
+    glow: 'rgba(179, 71, 255, 0.5)',
+    border: 'rgba(179, 71, 255, 0.45)',
+    gradientStart: '#D187FF',
+    gradientEnd: '#8800FF',
+    grid: 'rgba(179, 71, 255, 0.045)',
+  },
+  blood: {
+    name: 'crimson red',
+    primary: '#FF3344',
+    glow: 'rgba(255, 51, 68, 0.5)',
+    border: 'rgba(255, 51, 68, 0.45)',
+    gradientStart: '#FF6677',
+    gradientEnd: '#CC0011',
+    grid: 'rgba(255, 51, 68, 0.045)',
+  },
+  mono: {
+    name: 'monochrome terminal',
+    primary: '#9e9e9e',
+    glow: 'rgba(158, 158, 158, 0.4)',
+    border: 'rgba(158, 158, 158, 0.5)',
+    gradientStart: '#c2c2c2',
+    gradientEnd: '#666666',
+    grid: 'rgba(158, 158, 158, 0.04)',
   },
 };
 
@@ -132,28 +205,36 @@ function parseHost(hostname = '') {
     return { host, tld: parts[0], sld: parts[0] };
   }
 
-  // naive multi-part: take last label as TLD (good enough for theme)
   const tld = parts[parts.length - 1];
   const sld = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
   return { host, tld, sld };
 }
 
-export function resolveIngress(hostname = window.location.hostname) {
+export function resolveIngress(hostname = typeof window !== 'undefined' ? window.location.hostname : 'timant32.ru') {
   const { host, tld, sld } = parseHost(hostname);
   const tierKey = TLD_TIER[tld] || 'budget';
-  const theme = TIERS[tierKey];
+  let theme = TIERS[tierKey];
+
+  if (typeof window !== 'undefined') {
+    const custom = localStorage.getItem('timant32_custom_theme');
+    if (custom && NAMED_THEMES[custom]) {
+      theme = NAMED_THEMES[custom];
+    }
+  }
+
   return {
     host,
     tld,
     sld,
     short: sld || 'timant32',
     tier: tierKey,
-    tierLabel: theme.label,
+    tierLabel: theme.name || theme.label || tierKey,
     theme,
   };
 }
 
 export function applyIngressTheme(ingress = resolveIngress()) {
+  if (typeof document === 'undefined') return ingress;
   const root = document.documentElement;
   const { theme, host, tier, tld } = ingress;
 
@@ -168,6 +249,34 @@ export function applyIngressTheme(ingress = resolveIngress()) {
   root.dataset.tldTier = tier;
 
   return ingress;
+}
+
+export function applyCustomTheme(themeName) {
+  if (typeof window === 'undefined') return null;
+  const normalized = String(themeName).toLowerCase().trim();
+
+  if (normalized === 'default' || normalized === 'auto' || normalized === 'reset') {
+    localStorage.removeItem('timant32_custom_theme');
+    const ingress = resolveIngress();
+    applyIngressTheme(ingress);
+    return { success: true, themeName: 'auto', theme: ingress.theme };
+  }
+
+  const theme = NAMED_THEMES[normalized] || (normalized === 'matrix' ? NAMED_THEMES.green : null) || (normalized === 'fallout' ? NAMED_THEMES.amber : null) || (normalized === 'cyber' ? NAMED_THEMES.magenta : null) || (normalized === 'synthwave' ? NAMED_THEMES.cyan : null);
+
+  if (!theme) {
+    return {
+      success: false,
+      available: Object.keys(NAMED_THEMES),
+    };
+  }
+
+  localStorage.setItem('timant32_custom_theme', normalized);
+  const ingress = resolveIngress();
+  ingress.theme = theme;
+  ingress.tierLabel = theme.name;
+  applyIngressTheme(ingress);
+  return { success: true, themeName: normalized, theme };
 }
 
 export default resolveIngress;
