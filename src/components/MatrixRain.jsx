@@ -31,6 +31,23 @@ const MatrixRain = ({ onFinish, durationMs = 7000 }) => {
     let animationId;
     let startTime = Date.now();
 
+    const isReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = `${fontSize}px monospace`;
+      ctx.fillStyle = primaryColor;
+      for (let i = 0; i < columns; i++) {
+        for (let j = 0; j < Math.floor(height / fontSize); j++) {
+          if (Math.random() > 0.4) {
+            ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fontSize, j * fontSize);
+          }
+        }
+      }
+      const timer = setTimeout(() => onFinish?.(), 2000);
+      return () => clearTimeout(timer);
+    }
+
     const draw = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(0, 0, width, height);

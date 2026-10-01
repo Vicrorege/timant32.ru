@@ -14,6 +14,19 @@ const GameOfLifeWidget = () => {
       }
     }
 
+    const isReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) {
+      let out = '';
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          out += grid[i][j] ? '█' : '·';
+        }
+        out += '\n';
+      }
+      setGridData(out);
+      return undefined;
+    }
+
     const interval = setInterval(() => {
       let nextGrid = Array(rows).fill().map(() => Array(cols).fill(false));
       let changed = false;

@@ -1,15 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { resolveIngress, applyCustomTheme, NAMED_THEMES } from '../tldTheme';
+import { CURATED_PROJECTS } from './Projects';
 
 const ALL_COMMANDS = [
   'help',
+  'whoami',
+  'legacy',
+  'projects',
+  'status',
+  'music',
   'fastfetch',
   'neofetch',
   'theme',
   'github',
   'gh',
-  'stats',
-  'whoami',
+  'telegram',
   'skills',
   'about',
   'contact',
@@ -27,19 +32,11 @@ const ALL_COMMANDS = [
   'echo',
   'history',
   'clear',
-  'show',
   'reboot',
-  'ascii',
   'sudo',
+  'exit',
+  'quit',
 ];
-
-const VIRTUAL_FS = {
-  'about.txt': 'timant32 (Tim)\npython + React developer & robot enthusiast.\nBased in Bryansk, Russian Federation.',
-  'skills.md': '# Core Tech Stack\n- Languages: Python, C++, JavaScript/TypeScript, Go, SQL\n- Frontend: React 19, Vite, Tailwind/CSS, i18next\n- Backend & Infra: Linux (Arch/Debian), Docker, Nginx, Systemd, Redis, FastAPI, aiogram',
-  'contact.txt': 'Email: me@timant32.ru\nTelegram: https://t.me/tim_ant32\nGitHub: https://github.com/Vicrorege',
-  'projects.txt': '- timant32.ru — Terminal dashboard (React + Vite)\n- schedule2cal — Timetable to .ics sync (Python)\n- ha-vicro — Home Assistant companion daemon (Go)\n- maxbridge — Bridge & bot tooling (Python)\n- rgb-btw — Lighting sync utility (Python)',
-  '.env': 'NICE_TRY=1\nCALENDAR_ICS_URL=[REDACTED]\nLASTFM_API_KEY=[REDACTED]\nSECRET_FLAG=hermes{h4ck_th3_pl4n3t}',
-};
 
 function getCommonPrefix(words) {
   if (!words.length) return '';
@@ -53,34 +50,74 @@ function getCommonPrefix(words) {
   return prefix;
 }
 
-const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
+const Terminal = ({
+  isOpen = false,
+  onClose,
+  onCommand,
+  identity,
+}) => {
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState([
+    {
+      cmd: '',
+      output: `Connected to ${identity?.domain || 'terminal'}. Type 'help' for commands. (Press ESC or 'exit' to close)`,
+    },
+  ]);
   const [cmdHistory, setCmdHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const tempInputRef = useRef('');
   const inputRef = useRef(null);
+  const historyEndRef = useRef(null);
   const ingress = resolveIngress();
 
+  const activeIdentity = identity || ingress.identity;
+  const hostLabel = activeIdentity?.displayName?.replace(/[^\w.-]/g, '') || activeIdentity?.id || 'vicrorege';
+
   const prompt = (
-    <>
-      <span style={{ color: '#ff3333' }}>root@{hostLabel}</span>
-      <span style={{ color: '#5555ff' }}>~</span>$
-    </>
+    <span className="terminal-prompt">
+      <span style={{ color: '#ff4455' }}>root@{hostLabel}</span>
+      <span style={{ color: '#5588ff' }}>~</span>$&nbsp;
+    </span>
   );
 
+  const virtualFs = {
+    'about.txt': `${activeIdentity.brand} (Tim)\nDeveloper & robot enthusiast.\nSelf-hosted servers, Linux, bots, tools.`,
+    'skills.md': '# Core Tech Stack\n- Languages: Python, C++, React/TypeScript, Go, SQL\n- Infra: Linux (Arch / Ubuntu), Docker, Nginx, Systemd, Redis, Mailcow\n- Tooling: Git, Vite, FastAPI, aiogram',
+    'contact.txt': `Email: ${activeIdentity.links.email}\nTelegram: ${activeIdentity.links.telegram}\nGitHub: ${activeIdentity.links.github}`,
+    'projects.txt': CURATED_PROJECTS.map((p) => `- ${p.name}: ${p.desc.ru} (${p.stack})`).join('\n'),
+    'identity.json': JSON.stringify(
+      {
+        id: activeIdentity.id,
+        role: activeIdentity.role,
+        brand: activeIdentity.brand,
+        domain: activeIdentity.domain,
+        altDomain: activeIdentity.altDomain,
+      },
+      null,
+      2
+    ),
+  };
+
   useEffect(() => {
-    // Reset history index when input changes manually
+    if (isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [history]);
+
+  useEffect(() => {
     if (historyIndex !== -1 && input !== cmdHistory[cmdHistory.length - 1 - historyIndex]) {
       setHistoryIndex(-1);
     }
   }, [input, historyIndex, cmdHistory]);
 
-  const executeCommand = (rawInput) => {
+  const executeCommand = async (rawInput) => {
     const trimmed = rawInput.trim();
     if (!trimmed) return;
 
-    // Save to command history
     setCmdHistory((prev) => (prev[prev.length - 1] === trimmed ? prev : [...prev, trimmed]));
     setHistoryIndex(-1);
 
@@ -91,14 +128,51 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
 
     let output = '';
 
+    if (cmd === 'exit' || cmd === 'quit') {
+      onClose?.();
+      setInput('');
+      return;
+    }
+
     if (cmd === 'help') {
       output = [
         'Available terminal commands:',
-        '  System:      fastfetch, neofetch, whoami, skills, about, contact, uptime, date, uname, pwd, hostname',
+        '  Identity:    whoami [--all], legacy, contact, github, telegram',
+        '  System:      fastfetch, neofetch, skills, about, projects, status, music, uptime, date, uname, hostname',
         '  Navigation:  ls, cat <file>, echo <text>, dig, ping, history',
-        '  Customizer:  theme <name|auto>, matrix, ascii <w> <h>, clear, show, reboot',
-        '  Developer:   github, gh, stats',
-        '  Tab: auto-completes commands  |  Up/Down: command history navigation',
+        '  Theme/UI:    theme <name|auto>, matrix, clear, reboot',
+        '  Session:     exit / quit (or press ESC)',
+        '  Shortcuts:   Tab: autocompletion | Up/Down: history navigation',
+      ].join('\n');
+    } else if (cmd === 'whoami') {
+      if (rawArgs.includes('--all') || rawArgs.includes('-a')) {
+        if (activeIdentity.id === 'vicrorege') {
+          output = [
+            'vicrorege',
+            'aka tim',
+            'legacy: timant32',
+            `domain: ${activeIdentity.domain}`,
+            `role: current primary identity`,
+          ].join('\n');
+        } else {
+          output = [
+            'timant32',
+            'aka tim',
+            'current: vicrorege',
+            `domain: ${activeIdentity.domain}`,
+            `role: legacy internet home`,
+          ].join('\n');
+        }
+      } else {
+        output = activeIdentity.id === 'vicrorege' ? 'vicrorege' : 'timant32';
+      }
+    } else if (cmd === 'legacy') {
+      output = [
+        '--- Dual Identity Architecture ---',
+        '  vicrorege.com  → current public / dev identity (magenta / clean)',
+        '  timant32.ru    → legacy digital home (matrix green / terminal)',
+        '  Both belong to the same developer (Tim). Shared infrastructure,',
+        '  shared servers, two distinct gateways into the same space.',
       ].join('\n');
     } else if (cmd === 'fastfetch' || cmd === 'neofetch') {
       const archLogo = [
@@ -110,20 +184,18 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
         '  /   |  |  -\\   ',
         ' /_-\'\'    \'\'-_\\  ',
       ];
-      const now = new Date();
-      const currentTheme = localStorage.getItem('timant32_custom_theme') || ingress.tierLabel || 'matrix green';
+      const currentTheme = localStorage.getItem('timant32_custom_theme') || ingress.tierLabel || 'palette';
       const infoLines = [
-        `root@${ingress.short}`,
+        `root@${hostLabel}`,
         `--------------------`,
         `OS: Arch Linux x86_64`,
-        `Host: ${ingress.host} (Nginx / Vite PWA)`,
+        `Identity: ${activeIdentity.brand} (${activeIdentity.role})`,
+        `Host: ${activeIdentity.domain} (Nginx / Vite SPA)`,
         `Kernel: 6.8.0-zen (custom)`,
         `Uptime: 142 days, 7 hours, 23 mins`,
-        `WM: Hyprland (Wayland)`,
-        `Terminal: React-WebTerm v2.4`,
         `Shell: zsh 5.9 (x86_64-pc-linux-gnu)`,
         `Theme: ${currentTheme}`,
-        `Stack: Python, React, Go, C++, Linux`,
+        `Stack: Python, React 19, Go, C++, Linux`,
       ];
       const maxLines = Math.max(archLogo.length, infoLines.length);
       const combined = [];
@@ -133,55 +205,79 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
         combined.push(`${logo} ${info}`);
       }
       output = combined.join('\n');
+    } else if (cmd === 'projects') {
+      output = CURATED_PROJECTS.map(
+        (p) => `* ${p.name.padEnd(20)} [${p.tag}]\n  ${p.desc.ru}\n  stack: ${p.stack}`
+      ).join('\n\n');
+    } else if (cmd === 'status') {
+      output = [
+        '--- Infrastructure Node Probes ---',
+        '● timant32.ru      [ONLINE] 200 OK',
+        '● mail.timant32.su [ONLINE] 200 OK (Mailcow)',
+        '● mc.timant32.ru   [ONLINE] 200 OK (Minecraft/Crafty)',
+        'All 3/3 nodes operational.',
+      ].join('\n');
+    } else if (cmd === 'music') {
+      try {
+        const res = await fetch('/api/lastfm');
+        if (res.ok && res.status !== 204) {
+          const data = await res.json();
+          const raw = data?.recenttracks?.track;
+          const current = Array.isArray(raw) ? raw[0] : raw;
+          if (current?.name) {
+            output = `♫ ${current.name} — ${current.artist?.['#text'] || 'Unknown'}\nLast.fm: https://www.last.fm/user/${data?.recenttracks?.['@attr']?.user || 'tinant32'}`;
+          } else {
+            output = '♫ No active track streaming on Last.fm right now.';
+          }
+        } else {
+          output = '♫ No active track streaming on Last.fm right now.';
+        }
+      } catch {
+        output = '♫ Could not query Last.fm upstream.';
+      }
     } else if (cmd === 'theme') {
       if (!args.length) {
         const available = Object.keys(NAMED_THEMES).join(', ');
-        const current = localStorage.getItem('timant32_custom_theme') || 'auto (' + ingress.tierLabel + ')';
+        const current = localStorage.getItem('timant32_custom_theme') || `auto (${ingress.tierLabel})`;
         output = [
-          `Current theme: ${current}`,
-          `Available palettes: ${available}, auto/default`,
-          `Usage: theme <name> (e.g. "theme cyan", "theme amber", "theme matrix", "theme auto")`,
+          `Current palette: ${current}`,
+          `Available: ${available}, auto/default`,
+          `Usage: theme <name> (e.g. "theme magenta", "theme green", "theme cyan", "theme auto")`,
         ].join('\n');
       } else {
         const target = args[0].toLowerCase();
         const res = applyCustomTheme(target);
         if (res?.success) {
           output = `[theme] palette switched to: ${res.themeName}`;
-          onCommand(`theme ${res.themeName}`);
+          onCommand?.(`theme ${res.themeName}`);
         } else {
           output = `[theme] unknown theme "${target}". Available: ${Object.keys(NAMED_THEMES).join(', ')}, auto`;
         }
       }
     } else if (cmd === 'matrix' || cmd === 'cmatrix') {
       output = 'Entering the Matrix...';
-      onCommand('matrix');
+      onCommand?.('matrix');
+    } else if (cmd === 'github' || cmd === 'gh') {
+      output = `GitHub: ${activeIdentity.links.github}\nUser: ${activeIdentity.links.githubHandle}\nRepos: 7+ | Main: schedule2cal, axioma-board, timant32.ru`;
+    } else if (cmd === 'telegram' || cmd === 'tg') {
+      output = `Telegram: ${activeIdentity.links.telegram} (${activeIdentity.links.telegramHandle})\nSecondary: ${activeIdentity.links.telegramLegacy || activeIdentity.links.telegramCurrent}`;
+    } else if (cmd === 'contact') {
+      output = virtualFs['contact.txt'];
+    } else if (cmd === 'about' || cmd === 'bio') {
+      output = virtualFs['about.txt'];
+    } else if (cmd === 'skills') {
+      output = virtualFs['skills.md'];
     } else if (cmd === 'ping') {
       const target = args[0] || '127.0.0.1';
       output = [
         `PING ${target} (${target}) 56(84) bytes of data.`,
-        `64 bytes from ${target}: icmp_seq=1 ttl=64 time=0.042 ms`,
-        `64 bytes from ${target}: icmp_seq=2 ttl=64 time=0.038 ms`,
+        `64 bytes from ${target}: icmp_seq=1 ttl=64 time=0.038 ms`,
+        `64 bytes from ${target}: icmp_seq=2 ttl=64 time=0.041 ms`,
         `--- ${target} ping statistics ---`,
-        `2 packets transmitted, 2 received, 0% packet loss, time 1001ms`,
+        `2 packets transmitted, 2 received, 0% packet loss, time 1002ms`,
       ].join('\n');
-    } else if (cmd === 'github' || cmd === 'gh' || cmd === 'stats') {
-      output = [
-        'GitHub Profile: https://github.com/Vicrorege',
-        'User: Vicrorege (timant32)',
-        'Repos: 7 | Followers: 4 | 2026 Yearly Contribs: 340+',
-        'Latest push: schedule2cal (Python)',
-        'Stack: Python, React/JS, Go, C++, Arch Linux',
-      ].join('\n');
-    } else if (cmd === 'whoami') {
-      output = `tim (timant32)\nrole: python+React developer & bot enthusiast\nsession: ${ingress.host} (ingress: ${ingress.tierLabel})`;
-    } else if (cmd === 'skills') {
-      output = VIRTUAL_FS['skills.md'];
-    } else if (cmd === 'about' || cmd === 'bio') {
-      output = VIRTUAL_FS['about.txt'];
-    } else if (cmd === 'contact') {
-      output = VIRTUAL_FS['contact.txt'];
     } else if (cmd === 'hostname' || cmd === 'host') {
-      output = ingress.host;
+      output = activeIdentity.domain;
     } else if (cmd === 'uptime') {
       output = ' 18:42:00 up 142 days, 7:23, 1 user, load average: 0.08, 0.04, 0.01';
     } else if (cmd === 'date') {
@@ -197,81 +293,62 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
         timeZoneName: 'short',
       });
     } else if (cmd === 'ls' || cmd === 'dir') {
-      output = Object.keys(VIRTUAL_FS).join('   ');
+      output = Object.keys(virtualFs).join('   ');
     } else if (cmd === 'cat') {
       if (!args.length) {
-        output = 'usage: cat <filename> (e.g. "cat about.txt", "cat skills.md")';
+        output = 'usage: cat <filename> (e.g. "cat about.txt", "cat skills.md", "cat identity.json")';
       } else {
         const filename = args[0];
-        if (VIRTUAL_FS[filename]) {
-          output = VIRTUAL_FS[filename];
+        if (virtualFs[filename]) {
+          output = virtualFs[filename];
         } else {
           output = `cat: ${filename}: No such file or directory`;
         }
       }
     } else if (cmd === 'pwd') {
-      output = '/home/timant32';
+      output = `/home/${activeIdentity.id}`;
     } else if (cmd === 'uname') {
-      if (rawArgs.includes('-a')) {
-        output = `Linux ${ingress.short} 6.8.0-zen1-1-zen #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux`;
-      } else {
-        output = 'Linux';
-      }
+      output = rawArgs.includes('-a')
+        ? `Linux ${hostLabel} 6.8.0-zen1-1-zen #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux`
+        : 'Linux';
     } else if (cmd === 'echo') {
       output = rawArgs;
     } else if (cmd === 'history') {
       output = cmdHistory.map((c, idx) => `  ${idx + 1}  ${c}`).join('\n') || '  (empty)';
     } else if (cmd === 'dig' || cmd === 'nslookup') {
       output = [
-        `; <<>> Dig simulated <<>> ${ingress.host}`,
+        `; <<>> Simulated DNS query <<>> ${activeIdentity.domain}`,
         `;; QUESTION SECTION:`,
-        `;${ingress.host}.\t\tIN\tA`,
+        `;${activeIdentity.domain}.\t\tIN\tA`,
         `;; ANSWER SECTION:`,
-        `${ingress.host}.\t60\tIN\tTXT\t"tier=${ingress.tierLabel}; tld=.${ingress.tld}"`,
-        `;; Query time: 1 msec`,
+        `${activeIdentity.domain}.\t60\tIN\tTXT\t"identity=${activeIdentity.id}; role=${activeIdentity.role}"`,
         `;; SERVER: 127.0.0.1#53`,
-        `;; MSG SIZE  rcvd: 64`,
       ].join('\n');
     } else if (cmd === 'clear') {
       setHistory([]);
       setInput('');
-      onCommand('clear');
       return;
-    } else if (cmd === 'show') {
-      output = 'widgets restored.';
-      onCommand('show');
     } else if (cmd === 'reboot') {
       output = 'rebooting system...';
-      onCommand('reboot');
+      onCommand?.('reboot');
     } else if (cmd === 'sudo') {
-      output = 'timant is not in the sudoers file. This incident will be reported.';
-      onCommand('sudo');
-    } else if (cmd.startsWith('ascii')) {
-      if (args.length === 2) {
-        const w = parseInt(args[0], 10);
-        const h = parseInt(args[1], 10);
-        if (isNaN(w) || isNaN(h) || w < 2 || w > 14 || h < 2 || h > 25) {
-          output = 'error: limits are width 2-14, height 2-25';
-        } else {
-          output = `ascii grid resized to ${w}x${h}`;
-          onCommand(trimmed);
-        }
-      } else if (args[0] === 'auto') {
-        output = 'ascii grid set to auto sizing';
-        onCommand('ascii auto');
-      } else {
-        output = 'usage: ascii <width> <height> (or "ascii auto")';
-      }
+      output = `${activeIdentity.id} is not in the sudoers file. This incident will be reported.`;
+      onCommand?.('sudo');
     } else {
       output = `bash: ${cmd}: command not found. Type 'help' for available commands.`;
     }
 
     setHistory((prev) => [...prev, { cmd: trimmed, output }]);
-    onCommand(trimmed);
+    onCommand?.(trimmed);
     setInput('');
   };
 
   const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onClose?.();
+      return;
+    }
+
     if (e.key === 'Enter') {
       executeCommand(input);
       return;
@@ -310,106 +387,102 @@ const Terminal = ({ onCommand, hostLabel = 'timant32' }) => {
       const current = input.trim().toLowerCase();
       if (!current) return;
 
-      // Autocomplete cat with virtual files if typing "cat ..."
       if (current.startsWith('cat ')) {
         const filePrefix = current.slice(4).trim();
-        const fileMatches = Object.keys(VIRTUAL_FS).filter((f) => f.startsWith(filePrefix));
-        if (fileMatches.length === 1) {
-          setInput(`cat ${fileMatches[0]}`);
-        } else if (fileMatches.length > 1) {
-          const common = getCommonPrefix(fileMatches);
-          if (common.length > filePrefix.length) {
-            setInput(`cat ${common}`);
-          }
-          setHistory((prev) => [
-            ...prev,
-            { cmd: input, output: fileMatches.join('   ') },
-          ]);
+        const matches = Object.keys(virtualFs).filter((f) => f.startsWith(filePrefix));
+        if (matches.length === 1) {
+          setInput(`cat ${matches[0]}`);
+        } else if (matches.length > 1) {
+          const common = getCommonPrefix(matches);
+          if (common.length > filePrefix.length) setInput(`cat ${common}`);
+          setHistory((prev) => [...prev, { cmd: input, output: matches.join('   ') }]);
         }
         return;
       }
 
-      // Autocomplete theme names if typing "theme ..."
       if (current.startsWith('theme ')) {
-        const themePrefix = current.slice(6).trim();
-        const themeOptions = [...Object.keys(NAMED_THEMES), 'auto'];
-        const themeMatches = themeOptions.filter((t) => t.startsWith(themePrefix));
-        if (themeMatches.length === 1) {
-          setInput(`theme ${themeMatches[0]}`);
-        } else if (themeMatches.length > 1) {
-          setHistory((prev) => [
-            ...prev,
-            { cmd: input, output: themeMatches.join('   ') },
-          ]);
+        const prefix = current.slice(6).trim();
+        const opts = [...Object.keys(NAMED_THEMES), 'auto'];
+        const matches = opts.filter((t) => t.startsWith(prefix));
+        if (matches.length === 1) {
+          setInput(`theme ${matches[0]}`);
+        } else if (matches.length > 1) {
+          setHistory((prev) => [...prev, { cmd: input, output: matches.join('   ') }]);
         }
         return;
       }
 
-      // Autocomplete root commands
       const matches = ALL_COMMANDS.filter((c) => c.startsWith(current));
       if (matches.length === 1) {
         setInput(matches[0] + ' ');
       } else if (matches.length > 1) {
         const common = getCommonPrefix(matches);
-        if (common.length > current.length) {
-          setInput(common);
-        }
-        setHistory((prev) => [
-          ...prev,
-          { cmd: input, output: matches.join('   ') },
-        ]);
+        if (common.length > current.length) setInput(common);
+        setHistory((prev) => [...prev, { cmd: input, output: matches.join('   ') }]);
       }
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div
-      className="hide-on-mobile"
-      style={{
-        width: '800px',
-        maxWidth: '90vw',
-        marginTop: '30px',
-        marginBottom: '30px',
-        textAlign: 'left',
-        fontFamily: 'var(--font-main)',
-        fontSize: '0.9rem',
-      }}
-      onClick={() => inputRef.current && inputRef.current.focus()}
-    >
-      {history.map((item, i) => (
-        <div key={i}>
-          <div>
-            {prompt} {item.cmd}
+    <div className="terminal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Terminal">
+      <div
+        className="terminal-window"
+        onClick={(e) => {
+          e.stopPropagation();
+          inputRef.current?.focus();
+        }}
+      >
+        <div className="terminal-titlebar">
+          <div className="terminal-titlebar-left">
+            <span className="terminal-dot red" onClick={onClose} title="Close (ESC)" />
+            <span className="terminal-dot yellow" />
+            <span className="terminal-dot green" />
+            <span className="terminal-title">
+              root@{hostLabel}: ~ ({activeIdentity.domain})
+            </span>
           </div>
-          {item.output && (
-            <div style={{ color: 'var(--color-text)', whiteSpace: 'pre-wrap', marginBottom: '10px' }}>
-              {item.output}
-            </div>
-          )}
+          <button
+            type="button"
+            className="terminal-close-btn"
+            onClick={onClose}
+            title="Close terminal (ESC)"
+          >
+            [✕]
+          </button>
         </div>
-      ))}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        {prompt}&nbsp;
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            color: 'var(--color-primary)',
-            fontFamily: 'var(--font-main)',
-            fontSize: '0.9rem',
-            flexGrow: 1,
-            caretColor: 'var(--color-primary)',
-          }}
-          spellCheck="false"
-          autoComplete="off"
-          autoCapitalize="off"
-        />
+
+        <div className="terminal-body">
+          {history.map((item, i) => (
+            <div key={i} className="terminal-line-group">
+              {item.cmd && (
+                <div className="terminal-command-line">
+                  {prompt}
+                  <span className="terminal-typed-cmd">{item.cmd}</span>
+                </div>
+              )}
+              {item.output && <div className="terminal-output">{item.output}</div>}
+            </div>
+          ))}
+
+          <div className="terminal-input-row">
+            {prompt}
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="terminal-input"
+              spellCheck="false"
+              autoComplete="off"
+              autoCapitalize="off"
+              autoFocus
+            />
+          </div>
+          <div ref={historyEndRef} />
+        </div>
       </div>
     </div>
   );
