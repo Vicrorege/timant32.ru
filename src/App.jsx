@@ -188,17 +188,13 @@ function App() {
         {/* Top Floating Language Switcher */}
         <LanguageSwitcher />
 
-        {/* Top System/Music Banner */}
+        {/* LEVEL 1: HERO / IDENTITY WINDOW */}
+        <HeroWidget identity={identity} />
+
+        {/* COMPACT SYSTEM / MUSIC BANNER */}
         <div className="TopBannerContainer">
           <LastFmWidget />
         </div>
-
-        {/* LEVEL 1: HERO / IDENTITY WINDOW */}
-        <HeroWidget
-          identity={identity}
-          onSwitchIdentity={handleSwitchIdentity}
-          onOpenTerminal={() => setIsTerminalExpanded(true)}
-        />
 
         {/* LEVEL 2 & 3: TILED TWO-COLUMN DASHBOARD */}
         <div className="TwoColumns">
@@ -241,7 +237,6 @@ function App() {
         {/* Subtle Footer */}
         <footer className="DashboardFooter">
           <span>root@{identity.domain} · Arch Linux · {new Date().getFullYear()}</span>
-          <span style={{ opacity: 0.45 }}>[ press ~ for shell ]</span>
         </footer>
 
         {/* Fullscreen Matrix Screensaver (Easter egg / command) */}

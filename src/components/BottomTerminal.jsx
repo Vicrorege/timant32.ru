@@ -433,18 +433,14 @@ const BottomTerminal = ({
       className={`BottomTerminalContainer ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}
     >
       {!isExpanded ? (
-        /* Collapsed Bar: an inviting shell prompt at the bottom of the page */
+        /* Collapsed Bar: a natural, quiet shell prompt at the bottom of the page */
         <div
           className="bottom-terminal-collapsed-bar"
           onClick={() => onToggleExpand?.(true)}
-          title="Click to expand interactive shell (or press ~)"
         >
           <div className="bottom-terminal-collapsed-left">
             {prompt}
             <span className="bottom-terminal-collapsed-cursor">_</span>
-          </div>
-          <div className="bottom-terminal-collapsed-hint">
-            there's a shell down here &gt; [click or press ~]
           </div>
         </div>
       ) : (
@@ -452,18 +448,19 @@ const BottomTerminal = ({
         <div className="bottom-terminal-window">
           <div className="bottom-terminal-titlebar">
             <div className="bottom-terminal-titlebar-left">
-              <span className="dot red" onClick={() => onToggleExpand?.(false)} title="Close (ESC)" />
-              <span className="dot yellow" />
-              <span className="dot green" />
+              <span className="wm-bracket">[</span>
+              <span className="wm-title">shell</span>
+              <span className="wm-bracket">]</span>
+              <span className="wm-sep">──</span>
               <span className="bottom-terminal-title">
-                root@{hostLabel}: ~ ({activeIdentity.domain} shell)
+                root@{hostLabel}: ~ ({activeIdentity.domain})
               </span>
             </div>
             <button
               type="button"
               className="bottom-terminal-collapse-btn"
               onClick={() => onToggleExpand?.(false)}
-              title="Collapse shell (ESC)"
+              title="Collapse (ESC)"
             >
               [ collapse — ]
             </button>

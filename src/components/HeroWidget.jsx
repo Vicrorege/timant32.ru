@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const HeroWidget = ({ identity, onSwitchIdentity, onOpenTerminal }) => {
-  const { t, i18n } = useTranslation();
+const HeroWidget = ({ identity }) => {
+  const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('ru') ? 'ru' : 'en';
 
   const titleText = identity.heroTitle;
@@ -48,27 +48,20 @@ const HeroWidget = ({ identity, onSwitchIdentity, onOpenTerminal }) => {
 
   return (
     <div className="WidgetContainer HeroWindow">
-      {/* Window Titlebar */}
+      {/* Linux / Tiled WM Window Titlebar (No macOS traffic dots) */}
       <div className="hero-window-titlebar">
-        <div className="hero-window-dots">
-          <span className="dot red" />
-          <span className="dot yellow" />
-          <span className="dot green" />
-          <span className="hero-window-path">
-            root@{identity.id}: ~/identity
-          </span>
+        <div className="hero-window-wm-tag">
+          <span className="wm-bracket">[</span>
+          <span className="wm-title">~/identity</span>
+          <span className="wm-bracket">]</span>
+          <span className="wm-sep">──</span>
+          <span className="hero-window-path">root@{identity.id}</span>
         </div>
         <div className="hero-window-bridge">
           <a
             href={`https://${identity.altDomain}`}
-            onClick={(e) => {
-              if (onSwitchIdentity) {
-                e.preventDefault();
-                onSwitchIdentity(identity.role === 'current' ? 'timant32' : 'vicrorege');
-              }
-            }}
             className="hero-bridge-link"
-            title={identity.role === 'current' ? 'Legacy identity' : 'Current identity'}
+            title={identity.role === 'current' ? 'Legacy identity (timant32.ru)' : 'Current identity (vicrorege.com)'}
           >
             ⤷ {altBadge}
           </a>
@@ -88,7 +81,7 @@ const HeroWidget = ({ identity, onSwitchIdentity, onOpenTerminal }) => {
         <p className="hero-text-line">{tagline}</p>
         <p className="hero-tech-line">{subtagline}</p>
 
-        {/* Quick actions & live status */}
+        {/* Quick actions & live status (No terminal button here) */}
         <div className="hero-window-footer">
           <div className="hero-quick-links">
             <a href="#projects" onClick={scrollToProjects} className="hero-link">
@@ -116,14 +109,6 @@ const HeroWidget = ({ identity, onSwitchIdentity, onOpenTerminal }) => {
             >
               [ email ]
             </a>
-            <button
-              type="button"
-              onClick={onOpenTerminal}
-              className="hero-shell-trigger"
-              title="Jump to shell (~)"
-            >
-              [ &gt;_ shell ]
-            </button>
           </div>
 
           <div className="hero-live-status">

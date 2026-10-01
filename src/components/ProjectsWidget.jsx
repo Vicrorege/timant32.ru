@@ -10,7 +10,6 @@ export const CURATED_PROJECTS = [
       en: 'Interactive coordinate number line & visual math board canvas.',
     },
     stack: 'React · TS · Canvas / SVG',
-    tag: 'canvas / web',
     url: 'https://axioma.vicrorege.com',
     github: 'https://github.com/Vicrorege/axioma-board',
   },
@@ -22,7 +21,6 @@ export const CURATED_PROJECTS = [
       en: 'University schedule parser & automated RFC-5545 .ics calendar synchronization.',
     },
     stack: 'Python · iCalendar · Regex',
-    tag: 'automation / cli',
     github: 'https://github.com/Vicrorege/schedule2cal',
   },
   {
@@ -33,7 +31,6 @@ export const CURATED_PROJECTS = [
       en: 'Dynamic dashboard and modular tile widget constructor system.',
     },
     stack: 'React · Django · Celery · PG',
-    tag: 'fullstack / dash',
     url: 'https://tab-constructor.ru',
   },
   {
@@ -44,7 +41,6 @@ export const CURATED_PROJECTS = [
       en: 'Background companion daemon for Home Assistant & self-hosted nodes.',
     },
     stack: 'Go · Python · MQTT · Linux',
-    tag: 'daemon / iot',
     github: 'https://github.com/Vicrorege/ha-vicro',
   },
 ];
@@ -69,19 +65,20 @@ const ProjectsWidget = () => {
         <span className="projects-widget-sublabel">~/projects</span>
       </div>
 
-      <div className="projects-list-body">
+      {/* Terminal file listing style (no cards within card) */}
+      <div className="projects-listing-body">
         {CURATED_PROJECTS.map((proj) => {
           const desc = proj.desc[lang] || proj.desc.ru;
           return (
-            <div key={proj.id} className="project-card-row">
-              <div className="project-card-top">
-                <span className="project-card-name">
+            <div key={proj.id} className="project-listing-entry">
+              <div className="project-entry-header">
+                <span className="project-entry-name">
                   {proj.url ? (
                     <a
                       href={proj.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="project-anchor"
+                      className="project-entry-link"
                     >
                       {proj.name}
                     </a>
@@ -89,22 +86,15 @@ const ProjectsWidget = () => {
                     <span>{proj.name}</span>
                   )}
                 </span>
-                <span className="project-card-tag">{proj.tag}</span>
-              </div>
-
-              <div className="project-card-desc">{desc}</div>
-
-              <div className="project-card-bottom">
-                <span className="project-card-stack">{proj.stack}</span>
-                <div className="project-card-links">
+                <div className="project-entry-actions">
                   {proj.github && (
                     <a
                       href={proj.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="project-sub-link"
+                      className="project-action-link"
                     >
-                      [ gh ]
+                      [gh]
                     </a>
                   )}
                   {proj.url && (
@@ -112,13 +102,16 @@ const ProjectsWidget = () => {
                       href={proj.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="project-sub-link"
+                      className="project-action-link"
                     >
-                      [ demo ]
+                      [→]
                     </a>
                   )}
                 </div>
               </div>
+
+              <div className="project-entry-desc">{desc}</div>
+              <div className="project-entry-stack">{proj.stack}</div>
             </div>
           );
         })}

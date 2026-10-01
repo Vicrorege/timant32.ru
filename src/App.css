@@ -105,7 +105,8 @@ html::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 15px;
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 
 /* ================================================= */
@@ -140,26 +141,35 @@ html::after {
   margin-bottom: 14px;
 }
 
-.hero-window-dots {
+.hero-window-wm-tag {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
+  font-size: 0.76rem;
 }
 
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
+.wm-bracket {
+  color: var(--color-primary);
+  opacity: 0.8;
+  font-weight: 700;
 }
-.dot.red { background: #ff5f56; }
-.dot.yellow { background: #ffbd2e; }
-.dot.green { background: #27c93f; }
+
+.wm-title {
+  color: var(--color-primary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.wm-sep {
+  color: var(--color-secondary-text);
+  opacity: 0.35;
+  margin: 0 4px;
+}
 
 .hero-window-path {
   font-size: 0.78rem;
   color: var(--color-secondary-text);
-  margin-left: 6px;
+  margin-left: 2px;
 }
 
 .hero-window-bridge {
@@ -379,27 +389,26 @@ html::after {
   font-size: 0.72rem;
 }
 
-.projects-list-body {
+.projects-listing-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   text-align: left;
+  padding: 2px 0;
 }
 
-.project-card-row {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  padding: 10px 12px;
+.project-listing-entry {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.15s ease;
 }
 
-.project-card-row:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
-  background: rgba(0, 0, 0, 0.55);
+.project-listing-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
-.project-card-top {
+.project-entry-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -407,57 +416,48 @@ html::after {
   margin-bottom: 3px;
 }
 
-.project-card-name {
+.project-entry-name {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-text);
 }
 
-.project-anchor {
+.project-entry-link {
   color: var(--color-text);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
-.project-anchor:hover {
+
+.project-entry-link:hover {
   color: var(--color-primary);
+  text-decoration: underline;
 }
 
-.project-card-tag {
-  font-size: 0.65rem;
-  color: var(--color-secondary-text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-.project-card-desc {
-  font-size: 0.78rem;
-  color: var(--color-secondary-text);
-  line-height: 1.35;
-  margin-bottom: 6px;
-}
-
-.project-card-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.72rem;
-}
-
-.project-card-stack {
-  color: color-mix(in srgb, var(--color-primary) 70%, var(--color-secondary-text));
-}
-
-.project-card-links {
+.project-entry-actions {
   display: flex;
   gap: 6px;
 }
 
-.project-sub-link {
+.project-action-link {
   color: var(--color-primary);
   text-decoration: none;
+  font-size: 0.74rem;
 }
-.project-sub-link:hover {
+
+.project-action-link:hover {
   text-decoration: underline;
+}
+
+.project-entry-desc {
+  font-size: 0.78rem;
+  color: var(--color-secondary-text);
+  line-height: 1.35;
+  margin-bottom: 3px;
+}
+
+.project-entry-stack {
+  font-size: 0.72rem;
+  color: color-mix(in srgb, var(--color-primary) 65%, var(--color-secondary-text));
 }
 
 .projects-widget-footer {
@@ -803,24 +803,24 @@ html::after {
   transition: all 0.25s ease;
 }
 
-/* Collapsed: clean one-line shell prompt bar */
+/* Collapsed: quiet one-line shell prompt bar (easter egg) */
 .bottom-terminal-collapsed-bar {
   background: var(--color-surface);
-  border: 1px dashed var(--border-color);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   padding: 10px 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   cursor: pointer;
   font-size: 0.86rem;
   transition: all 0.2s ease;
 }
 
 .bottom-terminal-collapsed-bar:hover {
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  border-style: solid;
-  box-shadow: 0 0 10px var(--glow-color);
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  border-color: var(--border-color);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color) 40%, transparent);
 }
 
 .bottom-terminal-collapsed-left {
@@ -831,11 +831,6 @@ html::after {
 .bottom-terminal-collapsed-cursor {
   color: var(--color-primary);
   animation: blinkCursor 0.9s infinite;
-}
-
-.bottom-terminal-collapsed-hint {
-  font-size: 0.75rem;
-  color: var(--color-secondary-text);
 }
 
 /* Expanded full terminal window */
