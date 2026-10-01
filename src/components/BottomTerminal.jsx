@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { resolveIngress, applyCustomTheme, NAMED_THEMES } from '../tldTheme';
-import { CURATED_PROJECTS } from './Projects';
+import { CURATED_PROJECTS } from './ProjectsWidget';
 
 const ALL_COMMANDS = [
   'help',
@@ -28,12 +28,12 @@ const ALL_COMMANDS = [
   'ping',
   'hostname',
   'dig',
-  'nslookup',
   'echo',
   'history',
   'clear',
   'reboot',
   'sudo',
+  'collapse',
   'exit',
   'quit',
 ];
@@ -50,39 +50,40 @@ function getCommonPrefix(words) {
   return prefix;
 }
 
-const Terminal = ({
-  isOpen = false,
-  onClose,
-  onCommand,
+const BottomTerminal = ({
   identity,
+  isExpanded = false,
+  onToggleExpand,
+  onCommand,
 }) => {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState([
     {
       cmd: '',
-      output: `Connected to ${identity?.domain || 'terminal'}. Type 'help' for commands. (Press ESC or 'exit' to close)`,
+      output: `Connected to ${identity?.domain || 'terminal'}. Type 'help' for commands. (Press ESC or 'exit' to collapse)`,
     },
   ]);
   const [cmdHistory, setCmdHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const tempInputRef = useRef('');
   const inputRef = useRef(null);
-  const historyEndRef = useRef(null);
+  const containerRef = useRef(null);
+  const bottomScrollRef = useRef(null);
   const ingress = resolveIngress();
 
   const activeIdentity = identity || ingress.identity;
   const hostLabel = activeIdentity?.displayName?.replace(/[^\w.-]/g, '') || activeIdentity?.id || 'vicrorege';
 
   const prompt = (
-    <span className="terminal-prompt">
-      <span style={{ color: '#ff4455' }}>root@{hostLabel}</span>
+    <span className="bottom-term-prompt">
+      <span style={{ color: '#ff3b4e' }}>root@{hostLabel}</span>
       <span style={{ color: '#5588ff' }}>~</span>$&nbsp;
     </span>
   );
 
   const virtualFs = {
     'about.txt': `${activeIdentity.brand} (Tim)\nDeveloper & robot enthusiast.\nSelf-hosted servers, Linux, bots, tools.`,
-    'skills.md': '# Core Tech Stack\n- Languages: Python, C++, React/TypeScript, Go, SQL\n- Infra: Linux (Arch / Ubuntu), Docker, Nginx, Systemd, Redis, Mailcow\n- Tooling: Git, Vite, FastAPI, aiogram',
+    'skills.md': '# Core Tech Stack\n- Languages: Python, C++, React 19, JavaScript/TypeScript, Go, SQL\n- Infra: Linux (Arch / Ubuntu), Docker, Nginx, Systemd, Redis, Mailcow\n- Tooling: Git, Vite, FastAPI, aiogram',
     'contact.txt': `Email: ${activeIdentity.links.email}\nTelegram: ${activeIdentity.links.telegram}\nGitHub: ${activeIdentity.links.github}`,
     'projects.txt': CURATED_PROJECTS.map((p) => `- ${p.name}: ${p.desc.ru} (${p.stack})`).join('\n'),
     'identity.json': JSON.stringify(
@@ -99,14 +100,19 @@ const Terminal = ({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+    if (isExpanded) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 60);
     }
-  }, [isOpen]);
+  }, [isExpanded]);
 
   useEffect(() => {
-    historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history]);
+    if (isExpanded) {
+      bottomScrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [history, isExpanded]);
 
   useEffect(() => {
     if (historyIndex !== -1 && input !== cmdHistory[cmdHistory.length - 1 - historyIndex]) {
@@ -128,8 +134,8 @@ const Terminal = ({
 
     let output = '';
 
-    if (cmd === 'exit' || cmd === 'quit') {
-      onClose?.();
+    if (cmd === 'exit' || cmd === 'quit' || cmd === 'collapse') {
+      onToggleExpand?.(false);
       setInput('');
       return;
     }
@@ -141,7 +147,7 @@ const Terminal = ({
         '  System:      fastfetch, neofetch, skills, about, projects, status, music, uptime, date, uname, hostname',
         '  Navigation:  ls, cat <file>, echo <text>, dig, ping, history',
         '  Theme/UI:    theme <name|auto>, matrix, clear, reboot',
-        '  Session:     exit / quit (or press ESC)',
+        '  Session:     collapse / exit (or press ESC)',
         '  Shortcuts:   Tab: autocompletion | Up/Down: history navigation',
       ].join('\n');
     } else if (cmd === 'whoami') {
@@ -207,7 +213,7 @@ const Terminal = ({
       output = combined.join('\n');
     } else if (cmd === 'projects') {
       output = CURATED_PROJECTS.map(
-        (p) => `* ${p.name.padEnd(20)} [${p.tag}]\n  ${p.desc.ru}\n  stack: ${p.stack}`
+        (p) => `* ${p.name.padEnd(18)} [${p.tag}]\n  ${p.desc.ru}\n  stack: ${p.stack}`
       ).join('\n\n');
     } else if (cmd === 'status') {
       output = [
@@ -315,7 +321,7 @@ const Terminal = ({
       output = rawArgs;
     } else if (cmd === 'history') {
       output = cmdHistory.map((c, idx) => `  ${idx + 1}  ${c}`).join('\n') || '  (empty)';
-    } else if (cmd === 'dig' || cmd === 'nslookup') {
+    } else if (cmd === 'dig') {
       output = [
         `; <<>> Simulated DNS query <<>> ${activeIdentity.domain}`,
         `;; QUESTION SECTION:`,
@@ -345,7 +351,7 @@ const Terminal = ({
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
-      onClose?.();
+      onToggleExpand?.(false);
       return;
     }
 
@@ -360,9 +366,7 @@ const Terminal = ({
 
       const nextIdx = historyIndex + 1;
       if (nextIdx < cmdHistory.length) {
-        if (historyIndex === -1) {
-          tempInputRef.current = input;
-        }
+        if (historyIndex === -1) tempInputRef.current = input;
         setHistoryIndex(nextIdx);
         setInput(cmdHistory[cmdHistory.length - 1 - nextIdx]);
       }
@@ -423,69 +427,84 @@ const Terminal = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="terminal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Terminal">
-      <div
-        className="terminal-window"
-        onClick={(e) => {
-          e.stopPropagation();
-          inputRef.current?.focus();
-        }}
-      >
-        <div className="terminal-titlebar">
-          <div className="terminal-titlebar-left">
-            <span className="terminal-dot red" onClick={onClose} title="Close (ESC)" />
-            <span className="terminal-dot yellow" />
-            <span className="terminal-dot green" />
-            <span className="terminal-title">
-              root@{hostLabel}: ~ ({activeIdentity.domain})
-            </span>
-          </div>
-          <button
-            type="button"
-            className="terminal-close-btn"
-            onClick={onClose}
-            title="Close terminal (ESC)"
-          >
-            [✕]
-          </button>
-        </div>
-
-        <div className="terminal-body">
-          {history.map((item, i) => (
-            <div key={i} className="terminal-line-group">
-              {item.cmd && (
-                <div className="terminal-command-line">
-                  {prompt}
-                  <span className="terminal-typed-cmd">{item.cmd}</span>
-                </div>
-              )}
-              {item.output && <div className="terminal-output">{item.output}</div>}
-            </div>
-          ))}
-
-          <div className="terminal-input-row">
+    <div
+      ref={containerRef}
+      className={`BottomTerminalContainer ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}
+    >
+      {!isExpanded ? (
+        /* Collapsed Bar: an inviting shell prompt at the bottom of the page */
+        <div
+          className="bottom-terminal-collapsed-bar"
+          onClick={() => onToggleExpand?.(true)}
+          title="Click to expand interactive shell (or press ~)"
+        >
+          <div className="bottom-terminal-collapsed-left">
             {prompt}
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="terminal-input"
-              spellCheck="false"
-              autoComplete="off"
-              autoCapitalize="off"
-              autoFocus
-            />
+            <span className="bottom-terminal-collapsed-cursor">_</span>
           </div>
-          <div ref={historyEndRef} />
+          <div className="bottom-terminal-collapsed-hint">
+            there's a shell down here &gt; [click or press ~]
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Expanded Interactive Terminal Window */
+        <div className="bottom-terminal-window">
+          <div className="bottom-terminal-titlebar">
+            <div className="bottom-terminal-titlebar-left">
+              <span className="dot red" onClick={() => onToggleExpand?.(false)} title="Close (ESC)" />
+              <span className="dot yellow" />
+              <span className="dot green" />
+              <span className="bottom-terminal-title">
+                root@{hostLabel}: ~ ({activeIdentity.domain} shell)
+              </span>
+            </div>
+            <button
+              type="button"
+              className="bottom-terminal-collapse-btn"
+              onClick={() => onToggleExpand?.(false)}
+              title="Collapse shell (ESC)"
+            >
+              [ collapse — ]
+            </button>
+          </div>
+
+          <div
+            className="bottom-terminal-body"
+            onClick={() => inputRef.current?.focus()}
+          >
+            {history.map((item, i) => (
+              <div key={i} className="term-line-block">
+                {item.cmd && (
+                  <div className="term-cmd-row">
+                    {prompt}
+                    <span className="term-typed-text">{item.cmd}</span>
+                  </div>
+                )}
+                {item.output && <div className="term-output-text">{item.output}</div>}
+              </div>
+            ))}
+
+            <div className="term-input-row">
+              {prompt}
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="term-cli-input"
+                spellCheck="false"
+                autoComplete="off"
+                autoCapitalize="off"
+              />
+            </div>
+            <div ref={bottomScrollRef} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Terminal;
+export default BottomTerminal;

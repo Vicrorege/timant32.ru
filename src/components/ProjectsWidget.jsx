@@ -9,8 +9,8 @@ export const CURATED_PROJECTS = [
       ru: 'Интерактивная координатная прямая и канвас-доска для математики и графики.',
       en: 'Interactive coordinate number line & visual math board canvas.',
     },
-    stack: 'React · TypeScript · Canvas / SVG · Vite',
-    tag: 'canvas / webapp',
+    stack: 'React · TS · Canvas / SVG',
+    tag: 'canvas / web',
     url: 'https://axioma.vicrorege.com',
     github: 'https://github.com/Vicrorege/axioma-board',
   },
@@ -21,7 +21,7 @@ export const CURATED_PROJECTS = [
       ru: 'Парсер вузовского расписания и автоматическая синхронизация с .ics календарями.',
       en: 'University schedule parser & automated RFC-5545 .ics calendar synchronization.',
     },
-    stack: 'Python · iCalendar · Regex · Automation',
+    stack: 'Python · iCalendar · Regex',
     tag: 'automation / cli',
     github: 'https://github.com/Vicrorege/schedule2cal',
   },
@@ -32,8 +32,8 @@ export const CURATED_PROJECTS = [
       ru: 'Конструктор динамических дашбордов и интерактивных плиточных виджетов.',
       en: 'Dynamic dashboard and modular tile widget constructor system.',
     },
-    stack: 'React · Django · Celery · PostgreSQL',
-    tag: 'fullstack / dashboard',
+    stack: 'React · Django · Celery · PG',
+    tag: 'fullstack / dash',
     url: 'https://tab-constructor.ru',
   },
   {
@@ -43,80 +43,68 @@ export const CURATED_PROJECTS = [
       ru: 'Фоновый сервис-компаньон для домашней автоматизации и Home Assistant.',
       en: 'Background companion daemon for Home Assistant & self-hosted nodes.',
     },
-    stack: 'Go · Python · MQTT / REST · Linux',
+    stack: 'Go · Python · MQTT · Linux',
     tag: 'daemon / iot',
     github: 'https://github.com/Vicrorege/ha-vicro',
   },
-  {
-    id: 'mail-tg-forwarder',
-    name: 'mail-tg-forwarder',
-    desc: {
-      ru: 'Сервис пересылки и фильтрации почты Mailcow в Telegram с защитой от спама.',
-      en: 'Mailcow email-to-Telegram relay daemon with rule-based filtering.',
-    },
-    stack: 'Python · Telegram Bot API · IMAP · Docker',
-    tag: 'service / telegram',
-    github: 'https://github.com/Vicrorege/mail-tg-forwarder',
-  },
-  {
-    id: 'timant32-web',
-    name: 'vicrorege.com / timant32.ru',
-    desc: {
-      ru: 'Двухдоменная цифровая среда, персональный терминал и self-hosted сервисы.',
-      en: 'Dual-identity digital environment, web terminal, and personal hub.',
-    },
-    stack: 'React 19 · Vite · Nginx · Docker · i18n',
-    tag: 'terminal / web',
-    github: 'https://github.com/Vicrorege/timant32.ru',
-  },
 ];
 
-const Projects = () => {
+const ProjectsWidget = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith('ru') ? 'ru' : 'en';
 
   return (
-    <section id="projects" className="section-block projects-section">
-      <div className="section-header">
-        <h2 className="section-title">{t('section_projects', '01 / projects')}</h2>
+    <div
+      id="projects-widget"
+      className="WidgetContainer ProjectsWidget"
+      style={{ flexDirection: 'column', alignItems: 'stretch' }}
+    >
+      <div className="projects-widget-header">
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span className="projects-widget-badge">📁</span>
+          <span className="projects-widget-title">
+            {t('section_projects', '01 / projects')}
+          </span>
+        </div>
+        <span className="projects-widget-sublabel">~/projects</span>
       </div>
 
-      <div className="projects-grid">
+      <div className="projects-list-body">
         {CURATED_PROJECTS.map((proj) => {
-          const description = proj.desc[lang] || proj.desc.ru;
+          const desc = proj.desc[lang] || proj.desc.ru;
           return (
-            <article key={proj.id} className="project-item">
-              <div className="project-item-header">
-                <h3 className="project-name">
+            <div key={proj.id} className="project-card-row">
+              <div className="project-card-top">
+                <span className="project-card-name">
                   {proj.url ? (
                     <a
                       href={proj.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="project-link"
+                      className="project-anchor"
                     >
                       {proj.name}
                     </a>
                   ) : (
                     <span>{proj.name}</span>
                   )}
-                </h3>
-                <span className="project-tag">{proj.tag}</span>
+                </span>
+                <span className="project-card-tag">{proj.tag}</span>
               </div>
 
-              <p className="project-desc">{description}</p>
+              <div className="project-card-desc">{desc}</div>
 
-              <div className="project-footer">
-                <span className="project-stack">{proj.stack}</span>
-                <div className="project-actions">
+              <div className="project-card-bottom">
+                <span className="project-card-stack">{proj.stack}</span>
+                <div className="project-card-links">
                   {proj.github && (
                     <a
                       href={proj.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="project-sublink"
+                      className="project-sub-link"
                     >
-                      [ github ]
+                      [ gh ]
                     </a>
                   )}
                   {proj.url && (
@@ -124,30 +112,30 @@ const Projects = () => {
                       href={proj.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="project-sublink"
+                      className="project-sub-link"
                     >
-                      [ web ]
+                      [ demo ]
                     </a>
                   )}
                 </div>
               </div>
-            </article>
+            </div>
           );
         })}
       </div>
 
-      <div className="projects-all-link">
+      <div className="projects-widget-footer">
         <a
           href="https://github.com/Vicrorege"
           target="_blank"
           rel="noopener noreferrer"
-          className="all-gh-link"
+          className="projects-gh-all"
         >
           {t('all_projects_gh', '→ all repositories on github')}
         </a>
       </div>
-    </section>
+    </div>
   );
 };
 
-export default Projects;
+export default ProjectsWidget;

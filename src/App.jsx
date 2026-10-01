@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  resolveIdentity,
-  setIdentityOverride,
-  applyIdentityMetadata,
-} from './identity';
+import { resolveIdentity, setIdentityOverride, applyIdentityMetadata } from './identity';
 import { applyIngressTheme, resolveIngress } from './tldTheme';
-import Hero from './components/Hero';
-import Projects from './components/Projects';
-import NowActivity from './components/NowActivity';
-import ContactSection from './components/ContactSection';
-import DevRandom from './components/DevRandom';
-import Terminal from './components/Terminal';
+import HeroWidget from './components/HeroWidget';
+import ProjectsWidget from './components/ProjectsWidget';
+import LastFmWidget from './components/LastFmWidget';
+import TelegramWidget from './components/TelegramWidget';
+import StatusWidget from './components/StatusWidget';
+import GithubWidget from './components/GithubWidget';
+import ContactWidget from './components/ContactWidget';
+import CountdownWidget from './components/CountdownWidget';
+import AsciiVisualizerWidget from './components/AsciiVisualizerWidget';
+import CalendarWidget from './components/CalendarWidget';
+import CowsayWidget from './components/CowsayWidget';
+import GameOfLifeWidget from './components/GameOfLifeWidget';
+import BottomTerminal from './components/BottomTerminal';
 import BootScreen from './components/BootScreen';
 import MatrixRain from './components/MatrixRain';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -24,29 +27,30 @@ function App() {
   const [identity, setIdentity] = useState(() => resolveIdentity());
   const [ingress, setIngress] = useState(() => resolveIngress());
 
-  // 2. Interactive Secondary Layers State
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  // 2. Interactive States
+  const [isTerminalExpanded, setIsTerminalExpanded] = useState(false);
   const [matrixRain, setMatrixRain] = useState(false);
-  const [devRandomExp, setDevRandomExp] = useState(null);
   const [isBooting, setIsBooting] = useState(!sessionStorage.getItem('booted'));
+  const [asciiSize, setAsciiSize] = useState(null);
 
   // 3. Easter Egg States
   const [glitch, setGlitch] = useState(false);
   const [barrelRoll, setBarrelRoll] = useState(false);
 
-  // Sync theme and metadata when identity, ingress, or language changes
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+
+  // Apply theme variables & SEO metadata
   useEffect(() => {
-    const updatedIngress = applyIngressTheme();
-    setIngress(updatedIngress);
+    const updated = applyIngressTheme();
+    setIngress(updated);
   }, [identity]);
 
   useEffect(() => {
     applyIdentityMetadata(identity, i18n.language);
   }, [identity, i18n.language]);
 
-  // Handle Tab blur title change
+  // Tab blur title change
   useEffect(() => {
-    const originalTitle = document.title;
     const handleVisibilityChange = () => {
       if (document.hidden) {
         document.title = `[1]+  Stopped  ssh root@${identity.id}`;
@@ -58,7 +62,7 @@ function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [identity, i18n.language]);
 
-  // Terminal shortcut (~ or `)
+  // Global shortcut ~ (tilde) toggles bottom terminal
   useEffect(() => {
     const handleGlobalKey = (e) => {
       if (e.key === '`' || e.key === '~') {
@@ -67,14 +71,14 @@ function App() {
           return;
         }
         e.preventDefault();
-        setIsTerminalOpen((prev) => !prev);
+        setIsTerminalExpanded((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleGlobalKey);
     return () => window.removeEventListener('keydown', handleGlobalKey);
   }, []);
 
-  // Easter egg: sudo / rm -rf typing buffer
+  // Easter egg: sudo / rm -rf
   useEffect(() => {
     let buffer = '';
     const handleKeyDown = (e) => {
@@ -114,14 +118,14 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Console easter egg
+  // Console message
   useEffect(() => {
     console.log(
-      `%croot@${identity.id}%c: Welcome to ${identity.domain}\nArch Linux + React 19\nIdentity: ${identity.brand} (${identity.role})`,
+      `%croot@${identity.id}%c: Arch Linux + React 19 = ♥\nIdentity: ${identity.brand} (${identity.role}) | Ingress: ${ingress.host}`,
       `color: ${identity.appearance.accentColor}; font-weight: bold; font-size: 14px;`,
       'color: inherit; font-size: 12px;'
     );
-  }, [identity]);
+  }, [identity, ingress.host]);
 
   const handleBootFinish = useCallback(() => {
     sessionStorage.setItem('booted', 'true');
@@ -145,6 +149,17 @@ function App() {
       setTimeout(() => setGlitch(false), 3000);
     } else if (cmd.startsWith('theme')) {
       setIngress(resolveIngress());
+    } else if (cmd.startsWith('ascii ')) {
+      const parts = cmd.split(' ');
+      if (parts[1] === 'auto') {
+        setAsciiSize(null);
+      } else if (parts.length === 3) {
+        const w = parseInt(parts[1], 10);
+        const h = parseInt(parts[2], 10);
+        if (w >= 2 && w <= 24 && h >= 2 && h <= 20) {
+          setAsciiSize({ w, h });
+        }
+      }
     }
   }, []);
 
@@ -152,99 +167,86 @@ function App() {
     return <BootScreen onFinish={handleBootFinish} />;
   }
 
+  if (currentPath !== '/') {
+    return (
+      <div className="App minimalist" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: 'var(--color-text)', fontSize: '1.2rem', textAlign: 'left', padding: '20px', fontFamily: 'var(--font-main)' }}>
+          <span style={{ color: '#ff3333' }}>root@{identity.id}</span>:<span style={{ color: '#5555ff' }}>~{currentPath}</span>$ cat index.html<br/>
+          bash: {currentPath}: No such file or directory<br/><br/>
+          <span style={{ opacity: 0.35, fontSize: '0.85rem' }}>;; connected via {identity.domain}</span><br/><br/>
+          <a href="/" style={{ color: 'var(--color-primary)', textDecoration: 'none', borderBottom: '1px solid var(--color-primary)', cursor: 'pointer' }}>
+            cd /
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={`app-container ${identity.appearance.badgeClass} ${
-        glitch ? 'glitch-active' : ''
-      } ${barrelRoll ? 'barrel-roll-active' : ''}`}
-    >
-      {/* Top Utility Header Bar */}
-      <header className="top-nav-bar">
-        <div className="top-nav-left">
-          <span className="top-identity-badge">
-            <span className="identity-dot" />
-            <span className="identity-name">{identity.brand}</span>
-            <span className="identity-role">[{identity.role}]</span>
-          </span>
-          <button
-            type="button"
-            className="top-switch-btn"
-            onClick={() =>
-              handleSwitchIdentity(identity.role === 'current' ? 'timant32' : 'vicrorege')
-            }
-            title={
-              identity.role === 'current'
-                ? 'Preview legacy identity (timant32)'
-                : 'Preview current identity (vicrorege)'
-            }
-          >
-            ↔ {identity.role === 'current' ? 'timant32' : 'vicrorege'}
-          </button>
+    <div className={`App minimalist ${glitch ? 'glitch-active' : ''} ${barrelRoll ? 'barrel-roll-active' : ''}`}>
+      <main className="MainContent MinimalContent">
+        {/* Top Floating Language Switcher */}
+        <LanguageSwitcher />
+
+        {/* Top System/Music Banner */}
+        <div className="TopBannerContainer">
+          <LastFmWidget />
         </div>
 
-        <div className="top-nav-right">
-          <button
-            type="button"
-            className="top-terminal-trigger"
-            onClick={() => setIsTerminalOpen(true)}
-            title="Open terminal (~)"
-          >
-            &gt;_ <span className="terminal-key-hint">~</span>
-          </button>
-          <LanguageSwitcher />
-        </div>
-      </header>
-
-      {/* Main Single-Column Document Layout */}
-      <main className="main-content-flow">
-        {/* LEVEL 1: HERO */}
-        <Hero
+        {/* LEVEL 1: HERO / IDENTITY WINDOW */}
+        <HeroWidget
           identity={identity}
-          onOpenTerminal={() => setIsTerminalOpen(true)}
           onSwitchIdentity={handleSwitchIdentity}
+          onOpenTerminal={() => setIsTerminalExpanded(true)}
         />
 
-        {/* LEVEL 2: 01 / PROJECTS */}
-        <Projects />
+        {/* LEVEL 2 & 3: TILED TWO-COLUMN DASHBOARD */}
+        <div className="TwoColumns">
+          {/* Left Column: Curated Projects + Telegram Proxy */}
+          <div className="LeftColumn">
+            <ProjectsWidget />
+            <div className="TelegramContainer">
+              <TelegramWidget
+                key={i18n.language}
+                channel={t('telegram_channel')}
+                postId={t('telegram_post_id')}
+              />
+            </div>
+          </div>
 
-        {/* LEVEL 2: 02 / NOW */}
-        <NowActivity
-          onOpenServerDetails={() => setDevRandomExp('servers')}
-        />
-
-        {/* LEVEL 2: 03 / CONTACT */}
-        <ContactSection identity={identity} />
-
-        {/* LEVEL 3: 04 / /dev/random */}
-        <DevRandom
-          onOpenTerminal={() => setIsTerminalOpen(true)}
-          onTriggerMatrix={() => setMatrixRain(true)}
-          activeExperimentProp={devRandomExp}
-        />
-      </main>
-
-      {/* Subtle Colophon Footer */}
-      <footer className="page-footer">
-        <div className="footer-content">
-          <span>
-            root@{identity.domain} · {identity.brand} · Arch Linux
-          </span>
-          <span className="footer-subtext">
-            dual identity system · 80% calm, 20% weird
-          </span>
+          {/* Right Column: System & Secondary Widgets */}
+          <div className="SideWidgets">
+            <StatusWidget />
+            <GithubWidget />
+            <ContactWidget identity={identity} />
+            <CountdownWidget />
+            <AsciiVisualizerWidget
+              width={asciiSize?.w}
+              height={asciiSize?.h}
+            />
+            <CalendarWidget />
+            <CowsayWidget />
+            <GameOfLifeWidget />
+          </div>
         </div>
-      </footer>
 
-      {/* Interactive Secondary Layer: Terminal Drawer / Modal */}
-      <Terminal
-        isOpen={isTerminalOpen}
-        onClose={() => setIsTerminalOpen(false)}
-        onCommand={handleTerminalCommand}
-        identity={identity}
-      />
+        {/* LEVEL 3 EASTER EGG: INTERACTIVE TERMINAL AT THE VERY BOTTOM */}
+        <BottomTerminal
+          identity={identity}
+          isExpanded={isTerminalExpanded}
+          onToggleExpand={setIsTerminalExpanded}
+          onCommand={handleTerminalCommand}
+        />
 
-      {/* Fullscreen Matrix Screensaver */}
-      {matrixRain && <MatrixRain onFinish={() => setMatrixRain(false)} />}
+        {/* Subtle Footer */}
+        <footer className="DashboardFooter">
+          <span>root@{identity.domain} · Arch Linux · {new Date().getFullYear()}</span>
+          <span style={{ opacity: 0.45 }}>[ press ~ for shell ]</span>
+        </footer>
+
+        {/* Fullscreen Matrix Screensaver (Easter egg / command) */}
+        {matrixRain && <MatrixRain onFinish={() => setMatrixRain(false)} />}
+      </main>
     </div>
   );
 }
