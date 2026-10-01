@@ -1,59 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>я тимант.</title>
+    <title>__META_TITLE__</title>
+    <meta name="description" content="__META_DESC__" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
+    <link rel="canonical" href="https://__META_DOMAIN__" />
+
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="timant32" />
-    <meta property="og:title" content="timant32 | personal page" />
-    <meta property="og:description" content="Python, C++, React | Arch Linux" />
-    <meta property="og:image" content="https://timant32.ru/avatar.jpg" />
-    <meta property="og:url" content="https://timant32.ru" />
-    <meta name="theme-color" content="#00FF00" />
+    <meta name="apple-mobile-web-app-title" content="__META_BRAND__" />
+
+    <!-- OpenGraph / Facebook / Telegram / Discord -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="__META_BRAND__" />
+    <meta property="og:title" content="__META_TITLE__" />
+    <meta property="og:description" content="__META_DESC__" />
+    <meta property="og:image" content="https://__META_DOMAIN__/avatar.jpg" />
+    <meta property="og:url" content="https://__META_DOMAIN__" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="__META_TITLE__" />
+    <meta name="twitter:description" content="__META_DESC__" />
+    <meta name="twitter:image" content="https://__META_DOMAIN__/avatar.jpg" />
+
+    <meta name="theme-color" content="__META_COLOR__" />
+
     <script>
       (function() {
         try {
-          var h = (window.location.hostname || '').toLowerCase().replace(/:\d+$/, '').replace(/\.$/, '');
-          var tld = h.split('.').pop() || 'ru';
+          var rawHost = (window.location.hostname || '').toLowerCase().replace(/:\d+$/, '').replace(/\.$/, '');
+          var isVicro = rawHost.indexOf('vicrorege') !== -1 || rawHost.indexOf('.com') !== -1;
+          var tld = rawHost.split('.').pop() || (isVicro ? 'com' : 'ru');
+
+          var id = isVicro ? 'vicrorege' : 'timant32';
+          var brand = isVicro ? 'Vicrorege' : 'timant32';
+          var domain = isVicro ? 'vicrorege.com' : 'timant32.ru';
+          var title = isVicro ? 'vicrorege. — personal terminal' : 'я тимант. — старый дом';
+          var desc = isVicro
+            ? 'делаю ботов, сервисы и всякие свои штуки. linux · self-hosting · web'
+            : 'старый интернет-дом тиманта. боты, сервисы, linux, terminal.';
+          var defaultColor = isVicro ? '#FF2E8A' : '#00FF00';
+
+          // Replace placeholder tokens if served without server-side substitution
+          if (document.title.indexOf('__META_') !== -1) {
+            document.title = title;
+          }
+
+          var setMeta = function(selector, content) {
+            var el = document.querySelector(selector);
+            if (el) el.setAttribute('content', content);
+          };
+
+          setMeta('meta[name="description"]', desc);
+          setMeta('meta[property="og:title"]', title);
+          setMeta('meta[property="og:description"]', desc);
+          setMeta('meta[property="og:url"]', 'https://' + domain);
+          setMeta('meta[property="og:site_name"]', brand);
+          setMeta('meta[name="twitter:title"]', title);
+          setMeta('meta[name="twitter:description"]', desc);
+          setMeta('meta[name="theme-color"]', defaultColor);
+
+          var canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) canonical.setAttribute('href', 'https://' + domain);
+
+          // Theme palette setup
           var custom = localStorage.getItem('timant32_custom_theme');
           var map = {
-            commodity: { p: '#FF2E8A', g: 'rgba(255,46,138,0.6)', b: 'rgba(255,46,138,0.5)', s: '#FF6BB5', e: '#C4005C', gr: 'rgba(255,46,138,0.055)' },
-            mid: { p: '#00E5FF', g: 'rgba(0,229,255,0.6)', b: 'rgba(0,229,255,0.5)', s: '#66F0FF', e: '#0099CC', gr: 'rgba(0,229,255,0.055)' },
-            premium: { p: '#FFB000', g: 'rgba(255,176,0,0.6)', b: 'rgba(255,176,0,0.5)', s: '#FFD060', e: '#FF7A00', gr: 'rgba(255,176,0,0.055)' },
-            luxury: { p: '#FFD700', g: 'rgba(255,215,0,0.5)', b: 'rgba(255,215,0,0.55)', s: '#FFE680', e: '#FF9900', gr: 'rgba(255,215,0,0.055)' },
-            local: { p: '#7a7a7a', g: 'rgba(122,122,122,0.45)', b: 'rgba(122,122,122,0.55)', s: '#9a9a9a', e: '#555555', gr: 'rgba(122,122,122,0.05)' },
-            budget: { p: '#00FF00', g: 'rgba(0,255,0,0.5)', b: 'rgba(0,255,0,0.4)', s: '#00FF99', e: '#00CC33', gr: 'rgba(0,255,0,0.04)' }
+            commodity: { p: '#FF2E8A', g: 'rgba(255,46,138,0.5)', b: 'rgba(255,46,138,0.45)', s: '#FF6BB5', e: '#C4005C', gr: 'rgba(255,46,138,0.045)' },
+            budget: { p: '#00FF00', g: 'rgba(0,255,0,0.45)', b: 'rgba(0,255,0,0.4)', s: '#00FF99', e: '#00CC33', gr: 'rgba(0,255,0,0.035)' },
+            mid: { p: '#00E5FF', g: 'rgba(0,229,255,0.45)', b: 'rgba(0,229,255,0.4)', s: '#66F0FF', e: '#0099CC', gr: 'rgba(0,229,255,0.04)' },
+            premium: { p: '#FFB000', g: 'rgba(255,176,0,0.45)', b: 'rgba(255,176,0,0.4)', s: '#FFD060', e: '#FF7A00', gr: 'rgba(255,176,0,0.04)' },
+            local: { p: '#8a8a8a', g: 'rgba(138,138,138,0.4)', b: 'rgba(138,138,138,0.4)', s: '#aaaaaa', e: '#555555', gr: 'rgba(138,138,138,0.04)' }
           };
+
           var namedMap = {
-            green: map.budget, matrix: map.budget,
             magenta: map.commodity, cyber: map.commodity,
+            green: map.budget, matrix: map.budget,
             cyan: map.mid, synthwave: map.mid,
             amber: map.premium, fallout: map.premium,
-            gold: map.luxury, luxury: map.luxury,
-            mono: map.local,
-            blood: { p: '#FF3344', g: 'rgba(255,51,68,0.5)', b: 'rgba(255,51,68,0.45)', s: '#FF6677', e: '#CC0011', gr: 'rgba(255,51,68,0.045)' },
-            violet: { p: '#B347FF', g: 'rgba(179,71,255,0.5)', b: 'rgba(179,71,255,0.45)', s: '#D187FF', e: '#8800FF', gr: 'rgba(179,71,255,0.045)' }
+            mono: map.local
           };
-          var tldMap = {
-            com: 'commodity', net: 'commodity', org: 'commodity', info: 'commodity', xyz: 'commodity',
-            io: 'mid', dev: 'mid', app: 'mid', me: 'mid', co: 'mid', cc: 'mid', to: 'mid', is: 'mid', sh: 'mid', tech: 'mid',
-            ai: 'premium', gg: 'premium', tv: 'premium', fm: 'premium', so: 'premium',
-            luxury: 'luxury', crypto: 'luxury', nft: 'luxury',
-            localhost: 'local', '127.0.0.1': 'local'
-          };
-          var tier = tldMap[tld] || 'budget';
-          var th = (custom && namedMap[custom]) || map[tier] || map.budget;
+
+          var defaultTier = isVicro ? 'commodity' : 'budget';
+          var th = (custom && namedMap[custom]) || map[defaultTier];
+
           var root = document.documentElement;
           root.style.setProperty('--color-primary', th.p);
           root.style.setProperty('--glow-color', th.g);
@@ -61,9 +104,8 @@
           root.style.setProperty('--gradient-start', th.s);
           root.style.setProperty('--gradient-end', th.e);
           root.style.setProperty('--grid-color', th.gr);
-          root.dataset.ingress = h;
-          root.dataset.tld = tld;
-          root.dataset.tldTier = tier;
+          root.dataset.ingress = rawHost;
+          root.dataset.identity = id;
         } catch(e) {}
       })();
     </script>

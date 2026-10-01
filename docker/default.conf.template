@@ -1,3 +1,28 @@
+map $host $meta_brand {
+  ~*vicrorege "Vicrorege";
+  default "timant32";
+}
+
+map $host $meta_title {
+  ~*vicrorege "vicrorege. — personal terminal";
+  default "я тимант. — старый дом";
+}
+
+map $host $meta_desc {
+  ~*vicrorege "делаю ботов, сервисы и всякие свои штуки. linux · self-hosting · web";
+  default "старый интернет-дом тиманта. боты, сервисы, linux, terminal.";
+}
+
+map $host $meta_domain {
+  ~*vicrorege "vicrorege.com";
+  default "timant32.ru";
+}
+
+map $host $meta_color {
+  ~*vicrorege "#FF2E8A";
+  default "#00FF00";
+}
+
 server {
   listen 80;
   listen [::]:80;
@@ -46,6 +71,14 @@ server {
   }
 
   location / {
+    sub_filter '__META_BRAND__' '$meta_brand';
+    sub_filter '__META_TITLE__' '$meta_title';
+    sub_filter '__META_DESC__' '$meta_desc';
+    sub_filter '__META_DOMAIN__' '$meta_domain';
+    sub_filter '__META_COLOR__' '$meta_color';
+    sub_filter_once off;
+    sub_filter_types text/html;
+
     try_files $uri $uri/ /index.html;
   }
 }

@@ -1,6 +1,8 @@
 /**
  * Ingress Fingerprint & Palette Themes
  */
+import { resolveIdentity } from './identity';
+
 export const TIERS = {
   local: {
     label: 'loopback',
@@ -230,8 +232,9 @@ export function resolveIngress(hostname) {
       : 'timant32.ru';
 
   const { host, tld, sld } = parseHost(currentHost);
-  const tierKey = TLD_TIER[tld] || 'budget';
-  let theme = TIERS[tierKey] || TIERS.budget;
+  const identity = resolveIdentity(currentHost);
+  const tierKey = TLD_TIER[tld] || (identity.id === 'vicrorege' ? 'commodity' : 'budget');
+  let theme = TIERS[tierKey] || (identity.id === 'vicrorege' ? TIERS.commodity : TIERS.budget);
 
   if (typeof window !== 'undefined') {
     try {
@@ -248,7 +251,8 @@ export function resolveIngress(hostname) {
     host,
     tld,
     sld,
-    short: sld || 'timant32',
+    short: sld || identity.displayName,
+    identity,
     tier: tierKey,
     tierLabel: theme.name || theme.label || tierKey,
     theme,
